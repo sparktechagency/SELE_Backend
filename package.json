@@ -1,5 +1,5 @@
 {
-  "name": "educoin-backend",
+  "name": "SELE-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,6 +9,7 @@
     "lint:fix": "lint . --fix",
     "prettier:check": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "prettier:fix": "prettier --write .",
+    "create-module": "ts-node ./src/gm.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
