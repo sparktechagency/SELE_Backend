@@ -53,15 +53,6 @@ router.post(
     CarsController.createCar
 );
 
-
-
-
-
-
-
-
-
-
 // get all
 router.get('/', CarsController.getAllCars);
 // get single one
