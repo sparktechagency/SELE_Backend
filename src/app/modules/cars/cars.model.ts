@@ -12,8 +12,17 @@ const carsSchema = new Schema<ICars>({
   fuelType: { type: String, enum: fuelType, required: true },
   fuelCapacity: { type: String, required: true },
   kilometresData: { type: String, required: true },
-  carSeatsNumber: { type: String, required: true },
+  carSeatsNumber: { type: Number, required: true },
   transmission: { type: String, enum: ["Manual", "Automatic"], required: true },
+  price: {
+    type: Number,
+    required: true
+  },
+  ProtectionPlan: {
+    type: [String],
+    required: true
+  },
+
 });
 
 export const CarsModel = model<ICars>('Cars', carsSchema);

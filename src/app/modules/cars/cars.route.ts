@@ -31,9 +31,13 @@ router.post(
                 });
             }
 
+            // Map protectionPlan to ProtectionPlan
             req.body = {
                 ...req.body,
                 carImage,
+                carSeatsNumber: Number(req.body.carSeatsNumber),
+                price: Number(req.body.price),
+                ProtectionPlan: Array.isArray(req.body.protectionPlan) ? req.body.protectionPlan : JSON.parse(req.body.protectionPlan || '[]')
             };
 
             next();
@@ -48,6 +52,15 @@ router.post(
     validateRequest(CarsValidations.CarsValidationSchema),
     CarsController.createCar
 );
+
+
+
+
+
+
+
+
+
 
 // get all
 router.get('/', CarsController.getAllCars);
@@ -73,6 +86,11 @@ router.patch(
 
                 // Add the new car image to the request body
                 req.body.carImage = carImage;
+            }
+            if (req.body.protectionPlan) {
+                req.body.ProtectionPlan = Array.isArray(req.body.protectionPlan)
+                    ? req.body.protectionPlan
+                    : JSON.parse(req.body.protectionPlan || '[]');
             }
 
             next();

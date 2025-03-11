@@ -10,8 +10,10 @@ const CarsValidationSchema = z.object({
         fuelType: z.enum(Object.values(fuelType) as [string, ...string[]]),
         fuelCapacity: z.string().min(1, "Fuel capacity is required"),
         kilometresData: z.string().min(1, "Kilometres data is required"),
-        carSeatsNumber: z.string().min(1, "Car seats number must be at least 1"), // Changed to number
+        carSeatsNumber: z.number().min(1, "Car seats number must be at least 1"),
         transmission: z.enum(["Manual", "Automatic"], { errorMap: () => ({ message: "Invalid transmission type" }) }),
+        price: z.number().min(0, 'Price cannot be negative'),
+        ProtectionPlan: z.array(z.string()).min(1, 'At least one protection plan is required'),
     })
 })
 export const CarsValidations = {

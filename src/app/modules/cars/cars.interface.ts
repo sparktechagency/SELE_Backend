@@ -10,6 +10,8 @@ export type ICars = {
   fuelType: fuelType,
   fuelCapacity: string,
   kilometresData: string,
-  carSeatsNumber: string,
+  carSeatsNumber: number,
   transmission: "Manual" | "Automatic",
+  price: number,
+  ProtectionPlan: string[]
 };
