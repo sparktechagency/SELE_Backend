@@ -8,42 +8,51 @@ import { getSingleFilePath } from '../../../shared/getFilePath';
 
 const router = express.Router();
 // auth agency
-router.post('/',
-    fileUploadHandler() as any, // File upload handler first to ensure file is added
-    validateRequest(CarsValidations.CarsValidationSchema), // Validation happens after file is uploaded
+router.post(
+    '/',
+    fileUploadHandler(),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // Check if file is uploaded
-            if (!req.files || !(req.files as { [fieldname: string]: Express.Multer.File[] })['car']) {
+            console.log(req.files, "Uploaded files"); // Log uploaded files
+            console.log(req.body, "Request body"); // Log form-data fields
+
+            if (!req.files || !(req.files as { [fieldname: string]: Express.Multer.File[] })['carImage']) {
                 return sendResponse(res, {
                     statusCode: 400,
                     success: false,
-                    message: "No car image uploaded"
+                    message: 'No car image uploaded',
+                });
+            }
+            // @ts-ignore
+            const carImage = getSingleFilePath(req.files, 'carImage');
+
+            if (!carImage) {
+                return sendResponse(res, {
+                    statusCode: 400,
+                    success: false,
+                    message: "Car image path is not defined",
                 });
             }
 
-            const payload = req.body;
-            console.log(payload);
-            // Handle file upload, and assign file path to payload
-            // @ts-ignore
-            const carImage = getSingleFilePath(req.files, 'car'); // Make sure the field name matches
-
             req.body = {
-                ...payload,
-                carImage, // Add file path to request body
+                ...req.body,
+                carImage,
             };
 
-            next(); // Continue to the controller
+            next();
         } catch (error) {
+            console.error(error);
             sendResponse(res, {
-                statusCode: 403,
+                statusCode: 500,
                 success: false,
-                message: "Error while creating car"
+                message: 'Error while uploading car image',
             });
         }
     },
-    CarsController.createCar // Proceed to controller
+    validateRequest(CarsValidations.CarsValidationSchema),
+    CarsController.createCar
 );
+
 
 router.get('/', CarsController.getAllCars);
 router.get('/:id', CarsController.getSingleCar);

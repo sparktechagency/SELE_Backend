@@ -7,10 +7,10 @@ const CarsValidationSchema = z.object({
         description: z.string().min(1, "Description is required"),
         outDoorColor: z.string().min(1, "Outdoor color is required"),
         interiorColor: z.string().min(1, "Interior color is required"),
-        fuelType: z.nativeEnum(fuelType, { errorMap: () => ({ message: "Invalid fuel type" }) }),
+        fuelType: z.enum(Object.values(fuelType) as [string, ...string[]]),
         fuelCapacity: z.string().min(1, "Fuel capacity is required"),
         kilometresData: z.string().min(1, "Kilometres data is required"),
-        carSeatsNumber: z.number().min(1, "Car seats number must be at least 1"), // Changed to number
+        carSeatsNumber: z.string().min(1, "Car seats number must be at least 1"), // Changed to number
         transmission: z.enum(["Manual", "Automatic"], { errorMap: () => ({ message: "Invalid transmission type" }) }),
     })
 })
