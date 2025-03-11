@@ -13,9 +13,6 @@ router.post(
     fileUploadHandler(),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            console.log(req.files, "Uploaded files"); // Log uploaded files
-            console.log(req.body, "Request body"); // Log form-data fields
-
             if (!req.files || !(req.files as { [fieldname: string]: Express.Multer.File[] })['carImage']) {
                 return sendResponse(res, {
                     statusCode: 400,
@@ -41,7 +38,6 @@ router.post(
 
             next();
         } catch (error) {
-            console.error(error);
             sendResponse(res, {
                 statusCode: 500,
                 success: false,
@@ -53,10 +49,46 @@ router.post(
     CarsController.createCar
 );
 
-
+// get all
 router.get('/', CarsController.getAllCars);
+// get single one
 router.get('/:id', CarsController.getSingleCar);
-router.patch('/:id', CarsController.updateCar);
+// update one
+router.patch(
+    '/:id',
+    fileUploadHandler(), // Middleware to handle the file upload
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (req.files && (req.files as { [fieldname: string]: Express.Multer.File[] })['carImage']) {
+                // @ts-ignore
+                const carImage = getSingleFilePath(req.files, 'carImage');
+
+                if (!carImage) {
+                    return sendResponse(res, {
+                        statusCode: 400,
+                        success: false,
+                        message: "Car image path is not defined",
+                    });
+                }
+
+                // Add the new car image to the request body
+                req.body.carImage = carImage;
+            }
+
+            next();
+        } catch (error) {
+            sendResponse(res, {
+                statusCode: 500,
+                success: false,
+                message: 'Error while uploading car image',
+            });
+        }
+    },
+    CarsController.updateCar
+);
+
+
+// delete one
 router.delete('/:id', CarsController.deleteCar);
 
 

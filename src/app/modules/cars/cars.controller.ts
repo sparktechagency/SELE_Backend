@@ -18,6 +18,7 @@ const getAllCars = catchAsync(async (req: Request, res: Response) => {
     const result = await CarsServices.getAllCarsFromDB();
     sendResponse(res, {
         statusCode: 200,
+        totalLength: result.length,
         success: true,
         message: 'Cars fetched successfully',
         data: result,
