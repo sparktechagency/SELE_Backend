@@ -5,12 +5,18 @@ import { BrandModel } from './brand.model';
 
 // Create brand
 const createBrandIntoDB = async (payload: IBrand) => {
+
+    if (!payload.logo) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Logo is required");
+    }
+
     const brand = await BrandModel.create(payload);
     if (!brand) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create brand");
     }
     return brand;
 };
+
 
 // Get all brands
 const getAllBrandFromDB = async () => {

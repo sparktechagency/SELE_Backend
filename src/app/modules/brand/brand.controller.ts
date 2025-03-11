@@ -5,7 +5,7 @@ import sendResponse from '../../../shared/sendResponse';
 
 // Create a brand
 const createBrand = catchAsync(async (req: Request, res: Response) => {
-    const brandData = req.body;  // Get data from the request body
+    const brandData = req.body;
     const createdBrand = await BrandServices.createBrandIntoDB(brandData);
     sendResponse(res, {
         statusCode: 200,

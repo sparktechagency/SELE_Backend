@@ -27,7 +27,7 @@ const brandSchema = new Schema<IBrand>({
     required: true
   },
   seatNumber: {
-    type: Number,
+    type: String,
     required: true
   }
 });

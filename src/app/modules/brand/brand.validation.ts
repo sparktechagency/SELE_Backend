@@ -11,8 +11,8 @@ const brandValidationSchema = z.object({
         transmission: z.string({
             required_error: "Provide transmission."
         }),
-        seatNumber: z.number({
-            required_error: "seat number is required"
+        seatNumber: z.string({
+            required_error: "seat seat number it's required"
         }),
         interiorColor: z.string({
             required_error: "interiorColor is required"
@@ -20,9 +20,7 @@ const brandValidationSchema = z.object({
         pricePerDay: z.string({
             required_error: "pricePerDay is required"
         }),
-        logo: z.string({
-            required_error: "Please provide Logo"
-        })
+        logo: z.any(),
     })
 })
 
