@@ -17,7 +17,6 @@ const createBrandIntoDB = async (payload: IBrand) => {
     return brand;
 };
 
-
 // Get all brands
 const getAllBrandFromDB = async () => {
     const brands = await BrandModel.find();
