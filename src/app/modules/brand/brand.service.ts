@@ -2,6 +2,8 @@ import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
 import { IBrand } from './brand.interface';
 import { BrandModel } from './brand.model';
+import fs from 'fs';
+import path from 'path';
 
 // Create brand
 const createBrandIntoDB = async (payload: IBrand) => {
@@ -36,13 +38,27 @@ const getSingleBrandFromDB = async (id: string) => {
 };
 
 // Update a single brand by ID
-const updateSingleBrandInDB = async (id: string, updateData: IBrand) => {
-    const updatedBrand = await BrandModel.findByIdAndUpdate(id, updateData, { new: true });
-    if (!updatedBrand) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Brand update failed");
+const updateSingleBrandInDB = async (id: string, updateData: Partial<IBrand>) => {
+    const existingBrand = await BrandModel.findById(id);
+    if (!existingBrand) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Brand not found");
     }
-    return updatedBrand;
+
+    if (updateData.logo && existingBrand.logo) {
+        try {
+            fs.unlinkSync(path.join(process.cwd(), existingBrand.logo));
+        } catch (err) {
+            console.error("Error deleting old logo:", err);
+        }
+    }
+
+    Object.assign(existingBrand, updateData);
+    await existingBrand.save();
+
+    return existingBrand;
 };
+
+
 
 // Delete a single brand by ID (Permanent Deletion)
 const deleteSingleBrandFromDB = async (id: string) => {
@@ -52,6 +68,9 @@ const deleteSingleBrandFromDB = async (id: string) => {
     }
     return brandId;
 };
+
+
+
 
 export const BrandServices = {
     createBrandIntoDB,

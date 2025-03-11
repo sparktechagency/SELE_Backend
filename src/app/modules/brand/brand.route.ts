@@ -47,10 +47,32 @@ router.post(
     validateRequest(BrandValidations.brandValidationSchema),
     BrandController.createBrand
 );
-
+// get all Brands
 router.get('/brands', BrandController.getAllBrand);
+// get single brand
 router.get('/brands/:id', BrandController.getSingleBrand);
-router.put('/brands/:id', BrandController.updateSingleBrand);
+// update brand details
+router.patch(
+    '/brands/:id',
+    fileUploadHandler() as any,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const payload = req.body;
+            const logoFile = (req.files as { [fieldname: string]: Express.Multer.File[] })?.logo;
+            if (logoFile) {
+                // @ts-ignore
+                payload.logo = getSingleFilePath(req.files, 'logo');
+            }
+
+            req.body = payload;
+            next();
+        } catch (error) {
+            next(error);
+        }
+    },
+    BrandController.updateSingleBrand
+);
+
 router.delete('/brands/:id', BrandController.deleteSingleBrand);
 
 export const BrandRoutes = router;

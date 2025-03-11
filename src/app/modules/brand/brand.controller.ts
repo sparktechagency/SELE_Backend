@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { BrandServices } from './brand.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
+import { IBrand } from './brand.interface';
 
 // Create a brand
 const createBrand = catchAsync(async (req: Request, res: Response) => {
@@ -20,6 +21,7 @@ const getAllBrand = catchAsync(async (req: Request, res: Response) => {
     const result = await BrandServices.getAllBrandFromDB();
     sendResponse(res, {
         statusCode: 200,
+        totalLength: result?.length,
         success: true,
         message: "Successfully fetched all brands",
         data: result
@@ -42,14 +44,18 @@ const getSingleBrand = catchAsync(async (req: Request, res: Response) => {
 const updateSingleBrand = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const updateData = req.body;
+
     const updatedBrand = await BrandServices.updateSingleBrandInDB(id, updateData);
+
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Successfully updated brand",
-        data: updatedBrand
+        data: updatedBrand,
     });
 });
+
+
 
 // Delete a single brand by ID (Permanent Deletion)
 const deleteSingleBrand = catchAsync(async (req: Request, res: Response) => {
