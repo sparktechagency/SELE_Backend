@@ -21,10 +21,13 @@ const getAllCarsFromDB = async (filters: any) => {
     }
     // Kilometres filtering
     if (filters.kilometresData) {
-        query.kilometresData = {};
-        if (filters.kilometresData.gte) query.kilometresData.$gte = Number(filters.kilometresData.gte);
-        if (filters.kilometresData.lte) query.kilometresData.$lte = Number(filters.kilometresData.lte);
+        const kmValue = Number(filters.kilometresData);
+        if (!isNaN(kmValue)) {
+            query.kilometresData = kmValue;
+        }
     }
+
+
     // Brand Name filtering
     if (filters.brandName) {
         query.brandName = filters.brandName;
@@ -33,7 +36,6 @@ const getAllCarsFromDB = async (filters: any) => {
     if (filters.transmission) {
         query.transmission = filters.transmission;
     }
-
     const cars = await CarsModel.find(query);
     if (!cars) {
         throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to fetch cars');
