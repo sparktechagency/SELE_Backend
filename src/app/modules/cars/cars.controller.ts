@@ -15,7 +15,8 @@ const createCar = catchAsync(async (req: Request, res: Response) => {
     })
 })
 const getAllCars = catchAsync(async (req: Request, res: Response) => {
-    const result = await CarsServices.getAllCarsFromDB();
+    const filter = req.query
+    const result = await CarsServices.getAllCarsFromDB(filter);
     sendResponse(res, {
         statusCode: 200,
         totalLength: result.length,

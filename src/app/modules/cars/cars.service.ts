@@ -11,13 +11,36 @@ const createCarIntoDB = async (payload: ICars) => {
     return car;
 }
 // get all car
-const getAllCarsFromDB = async () => {
-    const cars = await CarsModel.find({});
+const getAllCarsFromDB = async (filters: any) => {
+    const query: any = {};
+    // Price filtering
+    if (filters.price) {
+        query.price = {};
+        if (filters.price.gte) query.price.$gte = Number(filters.price.gte);
+        if (filters.price.lte) query.price.$lte = Number(filters.price.lte);
+    }
+    // Kilometres filtering
+    if (filters.kilometresData) {
+        query.kilometresData = {};
+        if (filters.kilometresData.gte) query.kilometresData.$gte = Number(filters.kilometresData.gte);
+        if (filters.kilometresData.lte) query.kilometresData.$lte = Number(filters.kilometresData.lte);
+    }
+    // Brand Name filtering
+    if (filters.brandName) {
+        query.brandName = filters.brandName;
+    }
+    // Transmission filtering
+    if (filters.transmission) {
+        query.transmission = filters.transmission;
+    }
+
+    const cars = await CarsModel.find(query);
     if (!cars) {
         throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to fetch cars');
     }
     return cars;
-}
+};
+
 
 
 // get car by id
