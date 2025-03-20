@@ -45,8 +45,8 @@ const getSingleReserveData = async (id: string) => {
     return data
 }
 // Update Reserve Details
-const updateReserveDetails = async (id: string, payload: IReserveDetails) => {
-    const updatedData = await ReserveDetailsModel.findByIdAndUpdate(id, payload, { new: true });
+const updateReserveDetails = async (id: string, progressStatus: string) => {
+    const updatedData = await ReserveDetailsModel.findByIdAndUpdate(id, { progressStatus }, { new: true });
     if (!updatedData) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to update Reserve Details");
     }

@@ -61,15 +61,27 @@ const getSingleReserveDetails = catchAsync(async (req: Request, res: Response) =
 
 const updateReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const data = req.body
-    const result = await ReserveDetailsServices.updateReserveDetails(id, data);
+    const { progressStatus } = req.body;
+    console.log(progressStatus)
+
+    if (!progressStatus) {
+        return sendResponse(res, {
+            statusCode: 400,
+            success: false,
+            message: "Progress status is required"
+        });
+    }
+
+    const result = await ReserveDetailsServices.updateReserveDetails(id, progressStatus);
+
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "Successfully Update Reserve Details",
         data: result
-    })
-})
+    });
+});
+
 
 const deleteReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params

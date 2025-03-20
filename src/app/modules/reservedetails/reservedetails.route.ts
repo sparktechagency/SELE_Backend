@@ -7,6 +7,8 @@ import sendResponse from '../../../shared/sendResponse';
 import express from "express"
 import { Request, Response, NextFunction } from "express"
 import { ReserveDetailsController } from './reservedetails.controller';
+import { USER_ROLES } from '../../../enums/user';
+import auth from '../../middlewares/auth';
 const router = express.Router();
 // create
 router.post(
@@ -68,15 +70,6 @@ router.patch("/:id",
             const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense');
             // @ts-ignore
             const yourID = getMultipleFilesPath(req.files, 'yourID');
-
-            // If either of the files is not uploaded, return an error
-            if (!drivingLicense || !yourID) {
-                return sendResponse(res, {
-                    statusCode: 400,
-                    success: false,
-                    message: 'Both drivingLicense and yourID are required',
-                });
-            }
             req.body = {
                 ...req.body,
                 drivingLicense,
@@ -94,60 +87,4 @@ router.patch("/:id",
     },
     ReserveDetailsController.updateReserveDetails
 );
-
-
-
 export const reserveDetailsRoutes = router;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// get all 
-router.get("/", ReserveDetailsController.getAllReserveDetails)
-
-// get single
-router.get("/:reserDetailsID", ReserveDetailsController.getSingleReserveDetails)
-
-// update
-router.patch("/:reserDetailsID", ReserveDetailsController.updateReserveDetails)
-
-// delete
-router.delete("/:reserDetailsID", ReserveDetailsController.deleteReserveDetails)
-
-export const ReservedetailsRoutes = router;
