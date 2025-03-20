@@ -4,6 +4,8 @@ import { IReserveDetails } from "./reservedetails.interface";
 import { ReserveDetailsModel } from "./reservedetails.model";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { IPaginationOptions } from "../../../types/pagination";
+import { Server } from "socket.io";
+import { sendNotifications } from "../../../helpers/notificationSender";
 
 // create reserve Data
 
@@ -46,12 +48,20 @@ const getSingleReserveData = async (id: string) => {
 }
 // Update Reserve Details
 const updateReserveDetails = async (id: string, progressStatus: string) => {
-    const updatedData = await ReserveDetailsModel.findByIdAndUpdate(id, { progressStatus }, { new: true });
+    const updatedData: any = await ReserveDetailsModel.findByIdAndUpdate(id, { progressStatus }, { new: true });
     if (!updatedData) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to update Reserve Details");
     }
+    const notificationPayload = {
+        userId: updatedData?._id,
+        title: "Reserve Details In Progress",
+        message: `Your reserve details are in ${progressStatus}`,
+        type: "reserve_details"
+    }
+
+    await sendNotifications(notificationPayload as any);
     return updatedData;
-};
+}
 
 // Delete Reserve Details
 const deleteReserveDetails = async (id: string) => {

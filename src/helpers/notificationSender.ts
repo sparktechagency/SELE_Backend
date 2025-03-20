@@ -1,26 +1,17 @@
-import { Server } from "socket.io";
-import { NotificationServices } from "../app/modules/notification/notification.service";
+import { INotification } from "../app/modules/notification/notification.interface";
+import { Notification } from "../app/modules/notification/notification.model";
 
-export const notificationSender = async (
-    io: Server,
-    channel: string,
-    data: { userId: string; title: string; message: string; type: string }
-) => {
-    try {
-        // Emit the notification through Socket.IO
-        io.emit(channel, data);
+export const sendNotifications = async (data: INotification): Promise<INotification> => {
 
-        // Save the notification in the database
-        const notificationPayload = {
-            userId: data.userId,
-            title: data.title,
-            message: data.message,
-            isRead: false,
-        };
+    const result = await Notification.create(data);
+    // console.log(result)
 
-        await NotificationServices.createNotification(notificationPayload);
+    //@ts-ignore
+    const socketIo = global.io;
 
-    } catch (error) {
-        console.error("Error sending or storing notification:", error);
+    if (socketIo) {
+        socketIo.emit(`get-notification::${data?.userId}`, result);
     }
-};
+
+    return result;
+}

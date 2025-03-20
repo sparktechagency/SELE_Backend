@@ -62,7 +62,6 @@ const getSingleReserveDetails = catchAsync(async (req: Request, res: Response) =
 const updateReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { progressStatus } = req.body;
-    console.log(progressStatus)
 
     if (!progressStatus) {
         return sendResponse(res, {
