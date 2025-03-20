@@ -60,6 +60,7 @@ async function main() {
 
 main();
 
+
 //SIGTERM
 process.on('SIGTERM', () => {
   logger.info('SIGTERM IS RECEIVE');

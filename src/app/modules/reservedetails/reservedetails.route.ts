@@ -1,20 +1,153 @@
-import express from 'express';
-import { ReservedetailsController } from './reservedetails.controller';
 
+import validateRequest from '../../middlewares/validateRequest';
+import { ReserveDetailsValidations } from './reservedetails.validation';
+import fileUploadHandler from '../../middlewares/fileUploadHandler';
+import { getMultipleFilesPath } from '../../../shared/getFilePath';
+import sendResponse from '../../../shared/sendResponse';
+import express from "express"
+import { Request, Response, NextFunction } from "express"
+import { ReserveDetailsController } from './reservedetails.controller';
 const router = express.Router();
 // create
-router.post('/', ReservedetailsController.createReserveDetails);
+router.post(
+    '/',
+    fileUploadHandler(),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            // Check if the required files are uploaded for drivingLicense and yourID
+            // @ts-ignore
+            const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense');
+            // @ts-ignore
+            const yourID = getMultipleFilesPath(req.files, 'yourID');
 
-// get all 
-router.get("/", ReservedetailsController.getAllReserveDetails)
+            // If either of the files is not uploaded, return an error
+            if (!drivingLicense || !yourID) {
+                return sendResponse(res, {
+                    statusCode: 400,
+                    success: false,
+                    message: 'Both drivingLicense and yourID are required',
+                });
+            }
+            req.body = {
+                ...req.body,
+                drivingLicense,
+                yourID,
+            };
 
-// get single
-router.get("/:reserDetailsID", ReservedetailsController.getSingleReserDetails)
+            next();
+        } catch (error) {
+            sendResponse(res, {
+                statusCode: 500,
+                success: false,
+                message: 'Error while uploading files',
+            });
+        }
+    },
+    validateRequest(ReserveDetailsValidations.reserveDetailsSchema),
+    ReserveDetailsController.createReserveDetails
+);
 
-// update
-router.patch("/:reserDetailsID", ReservedetailsController.updateReserDetails)
+
+
+
+// get all reserve details
+router.get("/", ReserveDetailsController.getAllReserveDetails)
+
+router.get("/:id", ReserveDetailsController.getSingleReserveDetails)
 
 // delete
-router.delete("/:reserDetailsID", ReservedetailsController.deleteReserveDetails)
+router.delete("/:id", ReserveDetailsController.deleteReserveDetails)
+
+// update
+router.patch("/:id",
+    fileUploadHandler(),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            // Check if the required files are uploaded for drivingLicense and yourID
+            // @ts-ignore
+            const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense');
+            // @ts-ignore
+            const yourID = getMultipleFilesPath(req.files, 'yourID');
+
+            // If either of the files is not uploaded, return an error
+            if (!drivingLicense || !yourID) {
+                return sendResponse(res, {
+                    statusCode: 400,
+                    success: false,
+                    message: 'Both drivingLicense and yourID are required',
+                });
+            }
+            req.body = {
+                ...req.body,
+                drivingLicense,
+                yourID,
+            };
+
+            next();
+        } catch (error) {
+            sendResponse(res, {
+                statusCode: 500,
+                success: false,
+                message: 'Error while uploading files',
+            });
+        }
+    },
+    ReserveDetailsController.updateReserveDetails
+);
+
+
+
+export const reserveDetailsRoutes = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// get all 
+router.get("/", ReserveDetailsController.getAllReserveDetails)
+
+// get single
+router.get("/:reserDetailsID", ReserveDetailsController.getSingleReserveDetails)
+
+// update
+router.patch("/:reserDetailsID", ReserveDetailsController.updateReserveDetails)
+
+// delete
+router.delete("/:reserDetailsID", ReserveDetailsController.deleteReserveDetails)
 
 export const ReservedetailsRoutes = router;

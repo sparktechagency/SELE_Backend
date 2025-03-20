@@ -1,11 +1,13 @@
 import { Types } from 'mongoose';
+import { progressStatus } from '../../../enums/progressStatus';
 
-export type IReservedetails = {
+export type IReserveDetails = {
   carId: Types.ObjectId
   name: string,
-  startDate: Date
-  endDate: Date
+  startDate: string
+  endDate: string
   drivingLicense: string[],
-  yourID: string[]
+  yourID: string[],
+  progressStatus: progressStatus
 };
 

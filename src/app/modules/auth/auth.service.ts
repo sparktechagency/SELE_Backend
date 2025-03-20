@@ -34,6 +34,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
   }
 
   //check user status
+  // @ts-ignore
   if (isExistUser.status === 'delete') {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
@@ -50,13 +51,13 @@ const loginUserFromDB = async (payload: ILoginData) => {
   }
 
   //create token
-  const createToken = jwtHelper.createToken(
+  const accessToken = jwtHelper.createToken(
     { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
     config.jwt.jwt_secret as Secret,
     config.jwt.jwt_expire_in as string
   );
-
-  return { createToken };
+  const role = isExistUser.role;
+  return { accessToken, role };
 };
 
 //forget password

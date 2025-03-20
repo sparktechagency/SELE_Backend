@@ -5,14 +5,17 @@ import { CarsValidations } from './cars.validation';
 import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import sendResponse from '../../../shared/sendResponse';
 import { getSingleFilePath } from '../../../shared/getFilePath';
+import auth from '../../middlewares/auth';
+import { USER_ROLES } from '../../../enums/user';
 
 const router = express.Router();
 // auth agency
 router.post(
     '/',
-    fileUploadHandler(),
+    fileUploadHandler(), // Middleware for handling file uploads
     async (req: Request, res: Response, next: NextFunction) => {
         try {
+            // Check if the car image is uploaded
             if (!req.files || !(req.files as { [fieldname: string]: Express.Multer.File[] })['carImage']) {
                 return sendResponse(res, {
                     statusCode: 400,
@@ -20,6 +23,7 @@ router.post(
                     message: 'No car image uploaded',
                 });
             }
+
             // @ts-ignore
             const carImage = getSingleFilePath(req.files, 'carImage');
 
@@ -27,19 +31,22 @@ router.post(
                 return sendResponse(res, {
                     statusCode: 400,
                     success: false,
-                    message: "Car image path is not defined",
+                    message: 'Car image path is not defined',
                 });
             }
 
-            // Map protectionPlan to ProtectionPlan
+            // Map the car data with the correct fields
             req.body = {
                 ...req.body,
                 carImage,
                 carSeatsNumber: Number(req.body.carSeatsNumber),
                 price: Number(req.body.price),
-                ProtectionPlan: Array.isArray(req.body.protectionPlan) ? req.body.protectionPlan : JSON.parse(req.body.protectionPlan || '[]')
+                ProtectionPlan: Array.isArray(req.body.protectionPlan)
+                    ? req.body.protectionPlan
+                    : JSON.parse(req.body.protectionPlan || '[]'),
             };
 
+            // Proceed to the next middleware or controller
             next();
         } catch (error) {
             sendResponse(res, {
@@ -49,9 +56,10 @@ router.post(
             });
         }
     },
-    validateRequest(CarsValidations.CarsValidationSchema),
-    CarsController.createCar
+    auth(USER_ROLES.AGENCY),  // Protect route with the authorization middleware
+    CarsController.createCar  // Controller function to create the car
 );
+
 
 // get all
 router.get('/', CarsController.getAllCars);

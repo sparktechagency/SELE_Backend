@@ -3,13 +3,14 @@ import ApiError from "../../../errors/ApiError";
 import { ICars } from "./cars.interface";
 import { CarsModel } from "./cars.model";
 // create car
-const createCarIntoDB = async (payload: ICars) => {
-    const car = await CarsModel.create(payload);
+const createCarIntoDB = async (payload: ICars, userId: string) => {
+    const car = await CarsModel.create({ ...payload, userId });
     if (!car) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create car');
     }
     return car;
-}
+};
+
 // get all car
 const getAllCarsFromDB = async (filters: any) => {
     const query: any = {};

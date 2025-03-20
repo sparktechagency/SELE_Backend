@@ -4,7 +4,7 @@ import { UserRoutes } from '../app/modules/user/user.route';
 import { BrandRoutes } from '../app/modules/brand/brand.route';
 import { AboutusRoutes } from '../app/modules/aboutus/aboutus.route';
 import { CarsRoutes } from '../app/modules/cars/cars.route';
-import { ReservedetailsRoutes } from '../app/modules/reservedetails/reservedetails.route';
+import { reserveDetailsRoutes } from '../app/modules/reservedetails/reservedetails.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -30,7 +30,7 @@ const apiRoutes = [
   },
   {
     path: "/reserve-details",
-    route: ReservedetailsRoutes
+    route: reserveDetailsRoutes
   }
 ];
 

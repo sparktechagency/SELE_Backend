@@ -4,6 +4,7 @@ import { fuelType } from '../../../enums/fuel';
 
 const carsSchema = new Schema<ICars>({
   carImage: { type: String, required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   brandName: { type: String, required: true },
   description: { type: String, required: true },
   outDoorColor: { type: String, required: true },
@@ -14,14 +15,8 @@ const carsSchema = new Schema<ICars>({
   kilometresData: { type: String, required: true },
   carSeatsNumber: { type: Number, required: true },
   transmission: { type: String, enum: ["Manual", "Automatic"], required: true },
-  price: {
-    type: Number,
-    required: true
-  },
-  ProtectionPlan: {
-    type: [String],
-    required: true
-  },
+  price: { type: Number, required: true },
+  ProtectionPlan: { type: [String], required: true },
 
 });
 

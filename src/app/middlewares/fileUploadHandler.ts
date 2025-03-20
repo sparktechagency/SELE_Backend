@@ -39,6 +39,12 @@ const fileUploadHandler = () => {
         case "carImage":
           uploadDir = path.join(baseUploadDir, "carImage")
           break;
+        case "drivingLicense":
+          uploadDir = path.join(baseUploadDir, "drivingLicense")
+          break
+        case "yourID":
+          uploadDir = path.join(baseUploadDir, "yourID")
+          break
         default:
           throw new ApiError(StatusCodes.BAD_REQUEST, 'File is not supported');
       }
@@ -61,21 +67,26 @@ const fileUploadHandler = () => {
 
   //file filter
   const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
-    console.log("Received file fieldname:", file.fieldname);
-    console.log("Received file mimetype:", file.mimetype);
+    // console.log("Received file fieldname:", file.fieldname);
+    // console.log("Received file mimetype:", file.mimetype);
 
-    if (file.fieldname === 'image' || file.fieldname === 'logo' || file.fieldname === 'carImage') {
+    if (file.fieldname === 'image' || file.fieldname === 'logo' || file.fieldname === 'carImage' || file.fieldname === "yourID" || file.fieldname === "drivingLicense") {
       if (
         file.mimetype === 'image/jpeg' ||
         file.mimetype === 'image/png' ||
-        file.mimetype === 'image/jpg'
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/gif' ||
+        file.mimetype === 'image/webp' ||
+        file.mimetype === 'image/svg+xml' ||
+        file.mimetype === 'image/bmp' ||
+        file.mimetype === 'image/tiff'
       ) {
         cb(null, true);
       } else {
         cb(
           new ApiError(
             StatusCodes.BAD_REQUEST,
-            'Only .jpeg, .png, .jpg file supported'
+            'Only .jpeg, .png, .jpg, .gif, .webp, .svg, .bmp, .tiff files are supported'
           )
         );
       }
@@ -109,7 +120,9 @@ const fileUploadHandler = () => {
     { name: 'media', maxCount: 3 },
     { name: 'doc', maxCount: 3 },
     { name: 'logo', maxCount: 1 },
-    { name: 'carImage', maxCount: 1 }
+    { name: 'carImage', maxCount: 2 },
+    { name: "drivingLicense", maxCount: 2 },
+    { name: "yourID", maxCount: 2 }
   ]);
   return upload;
 };

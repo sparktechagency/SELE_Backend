@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { ReservedetailsServices } from './reservedetails.service';
+import { ReserveDetailsServices } from './reservedetails.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 
 const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const data = req.body
-    const result = await ReservedetailsServices.createReserveDetails(data)
+    const result = await ReserveDetailsServices.createReserveDetails(data)
     sendResponse(res, {
-        statusCode: 200,
+        statusCode: 201,
         success: true,
         message: "Successfully create Reserve Details",
         data: result
@@ -16,20 +16,40 @@ const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
 
 
 const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
-    const result = await ReservedetailsServices.getAllReserveData()
+    const { page, limit, sortBy, sortOrder } = req.query;
+    const options = {
+        page: Number(page) || 1, // Default to page 1 if not provided
+        limit: Number(limit) || 10, // Default to 10 records per page if not provided
+        sortBy: sortBy || 'createdAt', // Default sort by 'createdAt' field
+        sortOrder: sortOrder || 'desc', // Default sort order 'desc'
+    };
+    // @ts-ignore
+    const result = await ReserveDetailsServices.getAllReserveData(options);
+
     sendResponse(res, {
         statusCode: 200,
         success: true,
-        message: "Successfully Retrieve all Details",
-        data: result
+        message: "Successfully retrieved all reserve details",
+        // @ts-ignore
+        data: result.data,
+        pagination: {
+            // @ts-ignore
+            page: result.page,
+            // @ts-ignore
+            limit: result.limit,
+            // @ts-ignore
+            totalRecords: result.totalRecords,
+            // @ts-ignore
+            totalPages: result.totalPages,
+        }
+
     })
+
+
 })
-
-
-
-const getSingleReserDetails = catchAsync(async (req: Request, res: Response) => {
+const getSingleReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params
-    const result = await ReservedetailsServices.getSingleReserveData(id)
+    const result = await (await ReserveDetailsServices.getSingleReserveData(id)).populate('carId')
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -39,10 +59,10 @@ const getSingleReserDetails = catchAsync(async (req: Request, res: Response) => 
 })
 
 
-const updateReserDetails = catchAsync(async (req: Request, res: Response) => {
+const updateReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const data = req.body
-    const result = await ReservedetailsServices.updateReserveDetails(id, data);
+    const result = await ReserveDetailsServices.updateReserveDetails(id, data);
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -53,7 +73,7 @@ const updateReserDetails = catchAsync(async (req: Request, res: Response) => {
 
 const deleteReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params
-    const deleteData = await ReservedetailsServices.deleteReserveDetails(id)
+    const deleteData = await ReserveDetailsServices.deleteReserveDetails(id)
     sendResponse(res, {
         statusCode: 200,
         success: true,
@@ -61,12 +81,10 @@ const deleteReserveDetails = catchAsync(async (req: Request, res: Response) => {
         data: deleteData
     })
 })
-
-
-export const ReservedetailsController = {
+export const ReserveDetailsController = {
     createReserveDetails,
     getAllReserveDetails,
-    getSingleReserDetails,
-    updateReserDetails,
+    getSingleReserveDetails,
+    updateReserveDetails,
     deleteReserveDetails
 };

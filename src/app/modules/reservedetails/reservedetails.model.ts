@@ -1,13 +1,37 @@
 import { Schema, model } from 'mongoose';
-import { IReservedetails } from './reservedetails.interface';
+import { IReserveDetails } from './reservedetails.interface';
 
-const reservedetailsSchema = new Schema<IReservedetails>({
-  carId: Schema.Types.ObjectId,
-  name: String,
-  startDate: Date,
-  endDate: Date,
-  drivingLicense: [String],
-  yourID: [String]
+const reservedetailsSchema = new Schema<IReserveDetails>({
+  carId: {
+    type: Schema.Types.ObjectId,
+    ref: "Cars"
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  startDate: {
+    type: String,
+    required: true
+  },
+  endDate: {
+    type: String,
+    required: true
+  },
+  drivingLicense: {
+    type: [String],
+    required: true
+  },
+  yourID: {
+    type: [String],
+    required: true
+  },
+  progressStatus: {
+    type: Schema.Types.Mixed,
+    enum: ["In Progress", "Assigned", "Delivered", "Cancelled"],
+    required: true,
+    default: "In Progress"
+  }
 });
 
-export const ReservedetailsModel = model<IReservedetails>('Reservedetails', reservedetailsSchema);
+export const ReserveDetailsModel = model<IReserveDetails>('Reservedetails', reservedetailsSchema);
