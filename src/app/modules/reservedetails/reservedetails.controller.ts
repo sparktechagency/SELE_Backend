@@ -16,13 +16,22 @@ const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
 
 
 const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
-    const { page, limit, sortBy, sortOrder } = req.query;
+    const { page, limit, sortBy, sortOrder, progressStatus } = req.query;
+
+    // Log the incoming request query parameters for debugging
+    console.log('Request Query Params:', req.query);
+
     const options = {
         page: Number(page) || 1, // Default to page 1 if not provided
         limit: Number(limit) || 10, // Default to 10 records per page if not provided
         sortBy: sortBy || 'createdAt', // Default sort by 'createdAt' field
         sortOrder: sortOrder || 'desc', // Default sort order 'desc'
+        progressStatus: progressStatus
     };
+
+    // Log the final options passed to the service
+    console.log('Options being passed to service:', options);
+
     // @ts-ignore
     const result = await ReserveDetailsServices.getAllReserveData(options);
 
@@ -42,11 +51,13 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
             // @ts-ignore
             totalPages: result.totalPages,
         }
+    });
+});
 
-    })
 
 
-})
+
+
 const getSingleReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params
     const result = await (await ReserveDetailsServices.getSingleReserveData(id)).populate('carId')

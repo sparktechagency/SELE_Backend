@@ -1,5 +1,5 @@
 export enum progressStatus {
-    "In Progress",
+    "InProgress",
     "Assigned",
     "Delivered",
     "Cancelled"
