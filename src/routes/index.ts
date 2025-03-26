@@ -5,6 +5,8 @@ import { BrandRoutes } from '../app/modules/brand/brand.route';
 import { AboutusRoutes } from '../app/modules/aboutus/aboutus.route';
 import { CarsRoutes } from '../app/modules/cars/cars.route';
 import { reserveDetailsRoutes } from '../app/modules/reservedetails/reservedetails.route';
+import { ChatRoutes } from '../app/modules/chat/chat.route';
+import { MessageRoutes } from '../app/modules/message/message.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -31,6 +33,14 @@ const apiRoutes = [
   {
     path: "/reserve-details",
     route: reserveDetailsRoutes
+  },
+  {
+    path: "/chat",
+    route: ChatRoutes
+  },
+  {
+    path: "/message",
+    route: MessageRoutes
   }
 ];
 

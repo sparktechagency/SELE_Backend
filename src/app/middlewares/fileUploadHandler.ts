@@ -45,6 +45,9 @@ const fileUploadHandler = () => {
         case "yourID":
           uploadDir = path.join(baseUploadDir, "yourID")
           break
+        case "messageImage":
+          uploadDir = path.join(baseUploadDir, "messageImage")
+          break
         default:
           throw new ApiError(StatusCodes.BAD_REQUEST, 'File is not supported');
       }
@@ -70,7 +73,7 @@ const fileUploadHandler = () => {
     // console.log("Received file fieldname:", file.fieldname);
     // console.log("Received file mimetype:", file.mimetype);
 
-    if (file.fieldname === 'image' || file.fieldname === 'logo' || file.fieldname === 'carImage' || file.fieldname === "yourID" || file.fieldname === "drivingLicense") {
+    if (file.fieldname === 'image' || file.fieldname === 'logo' || file.fieldname === 'carImage' || file.fieldname === "yourID" || file.fieldname === "drivingLicense" || file.fieldname === "messageImage") {
       if (
         file.mimetype === 'image/jpeg' ||
         file.mimetype === 'image/png' ||
@@ -122,7 +125,8 @@ const fileUploadHandler = () => {
     { name: 'logo', maxCount: 1 },
     { name: 'carImage', maxCount: 2 },
     { name: "drivingLicense", maxCount: 2 },
-    { name: "yourID", maxCount: 2 }
+    { name: "yourID", maxCount: 2 },
+    { name: "messageImage", maxCount: 1 }
   ]);
   return upload;
 };

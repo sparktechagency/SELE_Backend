@@ -19,15 +19,11 @@ const createReserveDetails = async (payload: IReserveDetails) => {
 
 // get all reserve data
 const getAllReserveData = async (options: IPaginationOptions) => {
+    // @ts-ignore
     const { page, limit, skip, sortBy, sortOrder, progressStatus } = paginationHelper.calculatePagination(options);
-
-    // Log the progressStatus value to check if it's passed correctly
-    console.log('Progress Status received in service:', progressStatus);
 
     // Initialize the filter object
     const filter: any = {};
-
-    // Apply filter for progressStatus if it's provided
     if (progressStatus) {
         filter.progressStatus = progressStatus;
     }
@@ -35,7 +31,7 @@ const getAllReserveData = async (options: IPaginationOptions) => {
     // Log the final filter before querying
     console.log('Filter being used in the query:', filter);
 
-    const data = await ReserveDetailsModel.find(filter) // Apply the filter to the query
+    const data = await ReserveDetailsModel.find(filter)
         .skip(skip)
         .limit(limit)
         .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
