@@ -24,6 +24,9 @@ const loginUserFromDB = async (payload: ILoginData) => {
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
+  if (isExistUser.isDeleted) {
+    await User.findOneAndUpdate({ _id: isExistUser._id }, { isDeleted: false }, { new: true });
+  }
 
   //check verified and status
   if (!isExistUser.verified) {
@@ -248,10 +251,27 @@ const changePasswordToDB = async (
   await User.findOneAndUpdate({ _id: user.id }, updateData, { new: true });
 };
 
+
+// delete user
+const deleteUserToDB = async (user: JwtPayload) => {
+  const isExistUser = await User.findById(user.id)
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!")
+  }
+  const result = await User.findOneAndUpdate({ _id: user.id }, { isDeleted: true }, { new: true })
+  return {
+    result
+  }
+}
+
+
+
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
   forgetPasswordToDB,
   resetPasswordToDB,
   changePasswordToDB,
+  deleteUserToDB
 };

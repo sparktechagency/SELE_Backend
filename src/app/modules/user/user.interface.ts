@@ -10,6 +10,7 @@ export type IUser = {
   location: string;
   image?: string;
   verified: boolean;
+  isDeleted: boolean;
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;

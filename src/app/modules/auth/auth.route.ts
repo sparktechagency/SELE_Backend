@@ -37,4 +37,10 @@ router.post(
   AuthController.changePassword
 );
 
+router.delete(
+  '/delete-user',
+  auth(USER_ROLES.AGENCY, USER_ROLES.USER),
+  AuthController.deleteUser
+);
+
 export const AuthRoutes = router;

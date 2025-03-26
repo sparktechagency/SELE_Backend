@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   const { ...verifyData } = req.body;
   const result = await AuthService.verifyEmailToDB(verifyData);
-
+  console.log("result=======>>>>>>", result.data);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -70,10 +70,24 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+// delete user
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const result = await AuthService.deleteUserToDB(user)
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "User delete successfully",
+    data: result.result
+  })
+})
+
 export const AuthController = {
   verifyEmail,
   loginUser,
   forgetPassword,
   resetPassword,
   changePassword,
+  deleteUser
 };
