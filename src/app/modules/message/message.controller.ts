@@ -41,3 +41,4 @@ const getMessage = catchAsync(async (req: Request, res: Response, next: NextFunc
 });
 
 export const MessageController = { sendMessage, getMessage };
+// 
