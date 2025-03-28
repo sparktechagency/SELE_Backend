@@ -7,5 +7,5 @@ const privacyAndPolicySchema = new Schema<IPrivacyAndPolicy, PrivacyAndPolicyMod
     required: true,
   },
 }, { timestamps: true });
-
+// 
 export const Privacyandpolicy = model<IPrivacyAndPolicy, PrivacyAndPolicyModel>('Privacyandpolicy', privacyAndPolicySchema);
