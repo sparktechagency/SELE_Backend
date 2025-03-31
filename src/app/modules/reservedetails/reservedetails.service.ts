@@ -29,7 +29,6 @@ const getAllReserveData = async (options: IPaginationOptions) => {
     }
 
     // Log the final filter before querying
-    console.log('Filter being used in the query:', filter);
 
     const data = await ReserveDetailsModel.find(filter)
         .skip(skip)
@@ -40,7 +39,6 @@ const getAllReserveData = async (options: IPaginationOptions) => {
     const totalRecords = await ReserveDetailsModel.countDocuments(filter);
 
     // Log the fetched data
-    console.log('Fetched Data:', data);
 
     if (data.length === 0) {
         return {

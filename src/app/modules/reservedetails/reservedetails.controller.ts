@@ -18,8 +18,6 @@ const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
 const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { page, limit, sortBy, sortOrder, progressStatus } = req.query;
 
-    // Log the incoming request query parameters for debugging
-    console.log('Request Query Params:', req.query);
 
     const options = {
         page: Number(page) || 1, // Default to page 1 if not provided
@@ -30,7 +28,6 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
     };
 
     // Log the final options passed to the service
-    console.log('Options being passed to service:', options);
 
     // @ts-ignore
     const result = await ReserveDetailsServices.getAllReserveData(options);

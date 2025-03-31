@@ -18,7 +18,6 @@ const createChat = catchAsync(async (req: Request, res: Response) => {
 
 const getChat = catchAsync(async (req: Request, res: Response) => {
     const { friends } = req.body
-    console.log("friends=======>>>>>>", friends);
     // @ts-ignore
     const result = await ChatServices.getChatFromDB(friends)
     sendResponse(res, {
