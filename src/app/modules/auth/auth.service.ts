@@ -59,8 +59,14 @@ const loginUserFromDB = async (payload: ILoginData) => {
     config.jwt.jwt_secret as Secret,
     config.jwt.jwt_expire_in as string
   );
-  const role = isExistUser.role;
-  return { accessToken, role };
+  // refresh token
+  const refreshToken = jwtHelper.createToken(
+    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+    config.jwt.jwt_refresh as Secret,
+    config.jwt.jwt_refresh_expire_in as string
+  );
+
+  return { accessToken, refreshToken, role: isExistUser?.role };
 };
 
 //forget password
@@ -148,6 +154,34 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   }
   return { data, message };
 };
+
+
+// new access Token
+const newAccessTokenToUser = async(token: string)=>{
+  // Check if the token is provided
+  if (!token) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Token is required!');
+  }
+
+  const verifyUser = jwtHelper.verifyToken(
+    token,
+    config.jwt.jwt_refresh as Secret
+  );
+  const isExistUser = await User.findById(verifyUser?.id);
+  if(!isExistUser){
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized access")
+  }
+
+  //create token
+  const accessToken = jwtHelper.createToken(
+    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_expire_in as string
+  );
+
+
+  return accessToken 
+}
 
 //forget password
 const resetPasswordToDB = async (
@@ -265,6 +299,40 @@ const deleteUserToDB = async (user: JwtPayload) => {
 }
 
 
+// resend otp
+const resendOTP = async (email: string) => {
+  const isExistUser = await User.isExistUserByEmail(email);
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  //send mail
+  const otp = generateOTP();
+  const value = {
+    otp,
+    email: isExistUser.email,
+  };
+  const forgetPassword = emailTemplate.resendOtp(value);
+  emailHelper.sendEmail(forgetPassword);
+
+  //save to DB
+  const authentication = {
+    oneTimeCode: otp,
+    expireAt: new Date(Date.now() + 3 * 60000),
+  };
+  await User.findOneAndUpdate({ email }, { $set: { authentication } });
+};
+
+// get single user 
+const getSingleUserFromDB = async (user: JwtPayload) => {
+  const result = await User.findById(user.id);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+  return result;
+};
+
+
 
 
 export const AuthService = {
@@ -273,5 +341,8 @@ export const AuthService = {
   forgetPasswordToDB,
   resetPasswordToDB,
   changePasswordToDB,
-  deleteUserToDB
+  deleteUserToDB,
+  resendOTP,
+  getSingleUserFromDB,
+  newAccessTokenToUser
 };

@@ -4,6 +4,7 @@ import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { AuthController } from './auth.controller';
 import { AuthValidation } from './auth.validation';
+import { AuthService } from './auth.service';
 const router = express.Router();
 
 router.post(
@@ -41,6 +42,23 @@ router.delete(
   '/delete-user',
   auth(USER_ROLES.AGENCY, USER_ROLES.USER),
   AuthController.deleteUser
+);
+
+
+// resend otp
+router.post("/resend-otp",
+  AuthController.resendOtp
+)
+
+// get single user
+router.get("/user-details",
+  auth(USER_ROLES.AGENCY, USER_ROLES.USER, USER_ROLES.SUPER_ADMIN),
+  AuthController.getSingleUser
+)
+
+router.post(
+  '/refresh-token',
+  AuthController.newAccessToken
 );
 
 export const AuthRoutes = router;

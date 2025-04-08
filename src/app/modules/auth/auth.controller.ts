@@ -25,6 +25,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     message: 'User logged in successfully.',
     data: {
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       role: result.role,
     },
 
@@ -82,11 +83,56 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   })
 })
 
+
+// resend otp
+const resendOtp = catchAsync(async (req: Request, res: Response) => {
+  const email = req.body.email;
+  const result = await AuthService.resendOTP(email);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message:
+      'Please check your email. We have sent you a one-time passcode (OTP).',
+    data: result,
+  });
+});
+
+
+// new access token
+const newAccessToken = catchAsync(async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  const result = await AuthService.newAccessTokenToUser(refreshToken);
+
+  sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Generate Access Token successfully',
+      data: result
+  });
+});
+
+// get single user 
+const getSingleUser = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const result = await AuthService.getSingleUserFromDB(user);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User retrieved successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
   forgetPassword,
   resetPassword,
   changePassword,
-  deleteUser
+  deleteUser,
+  resendOtp,
+  getSingleUser,
+  newAccessToken
 };
