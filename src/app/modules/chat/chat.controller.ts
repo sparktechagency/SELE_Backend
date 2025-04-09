@@ -5,8 +5,10 @@ import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
 const createChat = catchAsync(async (req: Request, res: Response) => {
-    const { participants } = req.body
-    const result = await ChatServices.createChatToDB(participants)
+    const { participant } = req.body
+    console.log("req.user",req.user);
+    const payload = [req.user?.id, participant]
+    const result = await ChatServices.createChatToDB(payload as any)
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
@@ -17,14 +19,14 @@ const createChat = catchAsync(async (req: Request, res: Response) => {
 
 
 const getChat = catchAsync(async (req: Request, res: Response) => {
-    const { friends } = req.body
-    // @ts-ignore
-    const result = await ChatServices.getChatFromDB(friends)
+const result = await ChatServices.getChatFromDB(req.user);
+ 
     sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: "Chat fetched successfully",
-        data: result
-    })
-})
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'Chat fetched successfully',
+      data: result,
+    });
+  });
+  
 export const ChatController = { createChat, getChat };
