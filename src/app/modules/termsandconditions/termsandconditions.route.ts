@@ -7,6 +7,6 @@ import { termsAndConditionsValidations } from './termsandconditions.validation';
 const router = express.Router();
 
 router.post('/', auth(USER_ROLES.SUPER_ADMIN), validateRequest(termsAndConditionsValidations.createTermsAndConditionsZodSchema), termsAndConditionsController.createTermsAndConditions);
-router.get('/', auth(USER_ROLES.SUPER_ADMIN), termsAndConditionsController.getTermsAndConditions);
+router.get('/', termsAndConditionsController.getTermsAndConditions);
 
 export const termsAndConditionsRoutes = router;

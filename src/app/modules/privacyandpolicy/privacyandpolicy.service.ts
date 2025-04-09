@@ -1,22 +1,23 @@
-import { PrivacyAndPolicyModel } from './privacyandpolicy.interface';
-import { Privacyandpolicy } from './privacyandpolicy.model';
+import { IPrivacyAndPolicy } from './privacyandpolicy.interface';
+import { PrivacyAndPolicy } from './privacyandpolicy.model';
 import ApiError from '../../../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 
-const createPrivacyandpolicy = async (payload: PrivacyAndPolicyModel) => {
-    await Privacyandpolicy.deleteMany({});
-    const result = await Privacyandpolicy.create(payload);
+const createPrivacyAndPolicyIntoDB = async (payload: IPrivacyAndPolicy) => {
+    await PrivacyAndPolicy.deleteMany({});
+    const result = await PrivacyAndPolicy.create(payload)
+    console.log(result, "result");
     if (!result) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create privacy and policy");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create privacy and policy")
     }
-    return result;
+    return result
 }
 
-const getPrivacyandpolicy = async () => {
-    const result = await Privacyandpolicy.findOne({});
+const getPrivacyAndPolicy = async () => {
+    const result = await PrivacyAndPolicy.findOne({});
     if (!result) {
         throw new ApiError(StatusCodes.NOT_FOUND, "Privacy and policy not found");
     }
     return result;
 }
-export const PrivacyandpolicyServices = { createPrivacyandpolicy, getPrivacyandpolicy };
+export const PrivacyAndPolicyServices = {   createPrivacyAndPolicyIntoDB,  getPrivacyAndPolicy };

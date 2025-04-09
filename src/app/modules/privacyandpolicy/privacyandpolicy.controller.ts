@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { PrivacyandpolicyServices } from './privacyandpolicy.service';
+import { PrivacyAndPolicyServices } from './privacyandpolicy.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
-const createPrivacyandpolicy = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const createPrivacyAndPolicy = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { description } = req.body;
-    const result = await PrivacyandpolicyServices.createPrivacyandpolicy(description);
+    const result = await PrivacyAndPolicyServices.createPrivacyAndPolicyIntoDB({description});
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.CREATED,
@@ -15,8 +15,8 @@ const createPrivacyandpolicy = catchAsync(async (req: Request, res: Response, ne
     })
 })
 
-const getPrivacyandpolicy = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const result = await PrivacyandpolicyServices.getPrivacyandpolicy();
+const getPrivacyAndPolicy = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await PrivacyAndPolicyServices.getPrivacyAndPolicy();
     sendResponse(res, {
         success: true,
         statusCode: StatusCodes.OK,
@@ -25,4 +25,4 @@ const getPrivacyandpolicy = catchAsync(async (req: Request, res: Response, next:
     })
 })
 
-export const PrivacyandpolicyController = { createPrivacyandpolicy, getPrivacyandpolicy };
+export const PrivacyAndPolicyController = { createPrivacyAndPolicy,  getPrivacyAndPolicy };
