@@ -1,17 +1,19 @@
+import { Types } from "mongoose";
 import { fuelType } from "../../../enums/fuel";
+import { category } from "../../../enums/category";
 
 
 export type ICars = {
   carImage: string,
-  brandName: string,
+  brandName: Types.ObjectId,
   description: string,
+  price: number,
   outDoorColor: string,
   interiorColor: string,
   fuelType: fuelType,
   fuelCapacity: string,
   kilometresData: string,
+  category:category,
   carSeatsNumber: number,
   transmission: "Manual" | "Automatic",
-  price: number,
-  ProtectionPlan: string[]
 };

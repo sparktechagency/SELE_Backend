@@ -27,8 +27,6 @@ const getAllCarsFromDB = async (filters: any) => {
             query.kilometresData = kmValue;
         }
     }
-
-
     // Brand Name filtering
     if (filters.brandName) {
         query.brandName = filters.brandName;
@@ -37,7 +35,11 @@ const getAllCarsFromDB = async (filters: any) => {
     if (filters.transmission) {
         query.transmission = filters.transmission;
     }
-    const cars = await CarsModel.find(query);
+   
+    const cars = await CarsModel.find(query).populate({
+        path: "brandName",
+        select: "brandName -_id"
+    });
     if (!cars) {
         throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to fetch cars');
     }

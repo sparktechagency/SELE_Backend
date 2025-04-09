@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { fuelType } from '../../../enums/fuel';
+import { category } from '../../../enums/category';
 const CarsValidationSchema = z.object({
     body: z.object({
         carImage: z.string().min(1, "Car image is required"),
@@ -7,15 +8,16 @@ const CarsValidationSchema = z.object({
         description: z.string().min(1, "Description is required"),
         outDoorColor: z.string().min(1, "Outdoor color is required"),
         interiorColor: z.string().min(1, "Interior color is required"),
-        fuelType: z.enum(Object.values(fuelType) as [string, ...string[]]),
+        fuelType: z.enum(Object.values(fuelType) as [string, ...string[]]), // Enum validation for fuelType
         fuelCapacity: z.string().min(1, "Fuel capacity is required"),
         kilometresData: z.string().min(1, "Kilometres data is required"),
         carSeatsNumber: z.number().min(1, "Car seats number must be at least 1"),
         transmission: z.enum(["Manual", "Automatic"], { errorMap: () => ({ message: "Invalid transmission type" }) }),
         price: z.number().min(0, 'Price cannot be negative'),
         ProtectionPlan: z.array(z.string()).min(1, 'At least one protection plan is required'),
+        category: z.enum(Object.values(category) as [string, ...string[]]),
     })
-})
+});
 export const CarsValidations = {
     CarsValidationSchema
 };
