@@ -16,6 +16,8 @@ export type IUser = {
     oneTimeCode: number;
     expireAt: Date;
   };
+  latitude?: number;
+  longitude?: number;
 };
 
 export type UserModal = {

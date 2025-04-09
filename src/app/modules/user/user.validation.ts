@@ -8,6 +8,7 @@ const createUserZodSchema = z.object({
     confirmPassword: z.string({ required_error: 'Confirm Password is required' }),
     location: z.string({ required_error: 'Location is required' }),
     profile: z.string().optional(),
+    
   }),
 });
 
