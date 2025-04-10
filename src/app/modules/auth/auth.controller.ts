@@ -74,7 +74,8 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 // delete user
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
-  const result = await AuthService.deleteUserToDB(user)
+  const {password}=req.body;
+  const result = await AuthService.deleteUserToDB(user,password)
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

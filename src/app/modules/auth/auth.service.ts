@@ -25,7 +25,11 @@ const loginUserFromDB = async (payload: ILoginData) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
   if (isExistUser.isDeleted) {
-    await User.findOneAndUpdate({ _id: isExistUser._id }, { isDeleted: false }, { new: true });
+    await User.findOneAndUpdate(
+      { _id: isExistUser._id },
+      { isDeleted: false },
+      { new: true }
+    );
   }
 
   //check verified and status
@@ -155,9 +159,8 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   return { data, message };
 };
 
-
 // new access Token
-const newAccessTokenToUser = async(token: string)=>{
+const newAccessTokenToUser = async (token: string) => {
   // Check if the token is provided
   if (!token) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Token is required!');
@@ -168,8 +171,8 @@ const newAccessTokenToUser = async(token: string)=>{
     config.jwt.jwt_refresh as Secret
   );
   const isExistUser = await User.findById(verifyUser?.id);
-  if(!isExistUser){
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized access")
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized access');
   }
 
   //create token
@@ -179,9 +182,8 @@ const newAccessTokenToUser = async(token: string)=>{
     config.jwt.jwt_expire_in as string
   );
 
-
-  return accessToken 
-}
+  return accessToken;
+};
 
 //forget password
 const resetPasswordToDB = async (
@@ -285,19 +287,30 @@ const changePasswordToDB = async (
   await User.findOneAndUpdate({ _id: user.id }, updateData, { new: true });
 };
 
-
 // delete user
-const deleteUserToDB = async (user: JwtPayload) => {
-  const isExistUser = await User.findById(user.id)
+const deleteUserToDB = async (user: JwtPayload, password: string) => {
+  const isExistUser = await User.findById(user.id).select('+password');
   if (!isExistUser) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!")
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-  const result = await User.findOneAndUpdate({ _id: user.id }, { isDeleted: true }, { new: true })
-  return {
-    result
+  const isPasswordMatched = await bcrypt.compare(
+    password,
+    isExistUser.password
+  );
+  if (!isPasswordMatched) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Password doesn't match!");
   }
-}
+  if (isExistUser.isDeleted) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User already deleted!");
+  }
+  const result = await User.findOneAndUpdate(
+    { _id: user.id },
+    { isDeleted: true },
+    { new: true }
+  );
 
+  return { result };
+};
 
 // resend otp
 const resendOTP = async (email: string) => {
@@ -323,7 +336,7 @@ const resendOTP = async (email: string) => {
   await User.findOneAndUpdate({ email }, { $set: { authentication } });
 };
 
-// get single user 
+// get single user
 const getSingleUserFromDB = async (user: JwtPayload) => {
   const result = await User.findById(user.id);
   if (!result) {
@@ -331,9 +344,6 @@ const getSingleUserFromDB = async (user: JwtPayload) => {
   }
   return result;
 };
-
-
-
 
 export const AuthService = {
   verifyEmailToDB,
@@ -344,5 +354,5 @@ export const AuthService = {
   deleteUserToDB,
   resendOTP,
   getSingleUserFromDB,
-  newAccessTokenToUser
+  newAccessTokenToUser,
 };
