@@ -14,8 +14,7 @@ export type ICars = {
   fuelType: fuelType,
   fuelCapacity: string,
   kilometresData: string,
-
-  category:category,
+  category:Types.ObjectId,
   carSeatsNumber: number,
   transmission: "Manual" | "Automatic",
 };

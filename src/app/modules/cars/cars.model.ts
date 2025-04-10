@@ -14,7 +14,7 @@ const carsSchema = new Schema<ICars>({
   fuelType: { type: String, enum: Object.values(fuelType), required: true },
   fuelCapacity: { type: String, required: true },
   // @ts-ignore
-  category: { type: String, enum: Object.values(category), required: true },
+  category: { type: Schema.Types.ObjectId,ref:"Category",  required: true },
   transmission: { type: String, enum: ["Manual", "Automatic"], required: true },
   kilometresData: { type: String, required: true },
   carSeatsNumber: { type: Number, required: true }

@@ -44,11 +44,24 @@ const getAllCarsFromDB = async (filters: any) => {
     const cars = await CarsModel.find(query).populate({
         path: "brandName",
         select: "brandName -_id"
-    });
+    }).populate({
+        path: "category",
+        select: "category -_id"
+    }).lean();
     if (!cars) {
         throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to fetch cars');
     }
-    return cars;
+
+
+    const modifiedCars = cars.map(car => ({
+        ...car,
+        // @ts-ignore
+        brandName: car.brandName?.brandName || null,
+        // @ts-ignore
+        category: car.category?.category || null
+      }));
+
+    return modifiedCars;
 };
 
 
