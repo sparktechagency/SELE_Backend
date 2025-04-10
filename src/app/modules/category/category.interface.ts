@@ -1,7 +1,8 @@
 import { Model } from 'mongoose';
+import { category } from '../../../enums/category';
 
 export type ICategory = {
-  // Define the interface for Category here
+category: category;
 };
 
 export type CategoryModel = Model<ICategory>;

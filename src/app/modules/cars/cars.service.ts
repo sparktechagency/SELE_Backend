@@ -35,6 +35,11 @@ const getAllCarsFromDB = async (filters: any) => {
     if (filters.transmission) {
         query.transmission = filters.transmission;
     }
+
+    // category filtering
+    if (filters.category) {
+        query.category = filters.category;
+    }
    
     const cars = await CarsModel.find(query).populate({
         path: "brandName",

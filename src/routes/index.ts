@@ -9,6 +9,7 @@ import { MessageRoutes } from '../app/modules/message/message.route';
 import { AboutRoutes } from '../app/modules/about/about.route';
 import { termsAndConditionsRoutes } from '../app/modules/termsandconditions/termsandconditions.route';
 import { PrivacyAndPolicyRoutes } from '../app/modules/privacyandpolicy/privacyandpolicy.route';
+import { CategoryRoutes } from '../app/modules/category/category.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -51,6 +52,10 @@ const apiRoutes = [
   {
     path: "/privacy-and-policy",
     route: PrivacyAndPolicyRoutes
+  },
+  {
+    path:"/category",
+    route: CategoryRoutes
   }
 ];
 

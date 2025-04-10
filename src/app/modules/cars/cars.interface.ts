@@ -4,6 +4,7 @@ import { category } from "../../../enums/category";
 
 
 export type ICars = {
+  title: string,
   carImage: string,
   brandName: Types.ObjectId,
   description: string,
@@ -13,6 +14,7 @@ export type ICars = {
   fuelType: fuelType,
   fuelCapacity: string,
   kilometresData: string,
+
   category:category,
   carSeatsNumber: number,
   transmission: "Manual" | "Automatic",
