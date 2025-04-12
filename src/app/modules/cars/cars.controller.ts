@@ -42,7 +42,9 @@ const getAllCars = catchAsync(async (req: Request, res: Response) => {
   const pagination = {
     page: Number(filter.page),
     limit: Number(filter.limit),
+    // @ts-ignore
     total: result.length, // You may want to calculate the total records here, or in the service
+    // @ts-ignore
     totalPage: Math.ceil(result?.length / Number(filter?.limit)),
   };
 
@@ -51,11 +53,10 @@ const getAllCars = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'Cars fetched successfully',
-    data: result, // The actual data
+    data: result.data, // The actual data
     pagination, // Pagination info
   });
 });
-
 
 const getSingleCar = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;

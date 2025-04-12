@@ -2,11 +2,8 @@ import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
 import { ICars } from './cars.interface';
 import { CarsModel } from './cars.model';
-import { Category } from '../category/category.model';
-import { BrandModel } from '../brand/brand.model';
 import mongoose from 'mongoose';
 import { paginationHelper } from '../../../helpers/paginationHelper';
-import QueryBuilder from '../../../helpers/queryBuilder';
 // create car
 const createCarIntoDB = async (payload: ICars, userId: string) => {
   const car = await CarsModel.create({ ...payload, userId });
@@ -18,82 +15,208 @@ const createCarIntoDB = async (payload: ICars, userId: string) => {
 
 // get all car
 const getAllCarsFromDB = async (filters: any) => {
-  filters.page = filters.page ? Number(filters.page) : 1; // Default to page 1
-  filters.limit = filters.limit ? Number(filters.limit) : 10; // Default to limit 10
-  const query: any = {};
-  // Price filtering
+  const page = filters.page ? Number(filters.page) : 1;
+  const limit = filters.limit ? Number(filters.limit) : 10;
+  const skip = (page - 1) * limit;
 
-  //   !Todo: price filtering not working
-  // Handle price range filtering
+  const match: any = {};
+
+  // Price filter
   if (filters.minPrice || filters.maxPrice) {
     const minPrice = Number(filters.minPrice) || 0;
     const maxPrice = Number(filters.maxPrice);
     if (!isNaN(maxPrice)) {
-      query.price = {
+      match.price = {
         $gte: Math.min(minPrice, maxPrice),
         $lte: Math.max(minPrice, maxPrice),
       };
     }
   }
 
-  // Kilometres filtering
+  // Kilometres
   if (filters.kilometresData) {
     const kmValue = Number(filters.kilometresData);
     if (!isNaN(kmValue)) {
-      query.kilometresData = kmValue;
+      match.kilometresData = kmValue;
     }
   }
-  // Brand Name filtering
+
+  // Brand
   if (filters.brandName) {
-    query.brandName = new mongoose.Types.ObjectId(filters.brandName);
+    match.brandName = new mongoose.Types.ObjectId(filters.brandName);
   }
 
-  // Transmission filtering
+  // Transmission
   if (filters.transmission) {
-    query.transmission = filters.transmission;
+    match.transmission = filters.transmission;
   }
 
-  // category filtering
+  // Category
   if (filters.category) {
-    query.category = new mongoose.Types.ObjectId(filters.category);
-  }
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelper.calculatePagination(filters);
-  const cars = await CarsModel.find(query)
-    .skip(skip) // Apply skip for pagination
-    .limit(limit) // Apply limit for pagination
-    .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 }) // Sorting logic
-    .populate({
-      path: 'brandName',
-      select: 'brandName _id',
-    })
-    .populate({
-      path: 'category',
-      select: 'category _id',
-    })
-    .populate({
-      path: 'userId',
-      select: 'name email _id location image description',
-    })
-    .lean();
-  if (!cars) {
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      'Failed to fetch cars'
-    );
+    match.category = new mongoose.Types.ObjectId(filters.category);
   }
 
-  return cars;
+  const sortBy = filters.sortBy || 'createdAt';
+  const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
+
+  const cars = await CarsModel.aggregate([
+    { $match: match },
+    {
+      $lookup: {
+        from: 'ratings',
+        localField: '_id',
+        foreignField: 'carId',
+        as: 'reviews',
+        pipeline: [
+          {
+            $project: {
+              rating: 1,
+              review: 1,
+            }
+          }
+        ]
+      }
+    },
+    {
+      $lookup: {
+        from: 'brands',
+        localField: 'brandName',
+        foreignField: '_id',
+        as: 'brandName'
+      }
+    },
+    {
+      $unwind: '$brandName'
+    },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category'
+      }
+    },
+    {
+      $unwind: '$category'
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userId',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              email: 1,
+              location: 1,
+              image: 1,
+              description: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $unwind: '$userId'
+    },
+    {
+      $addFields: {
+        averageRating: {
+          $cond: {
+            if: { $gt: [{ $size: '$reviews' }, 0] },
+            then: { $avg: '$reviews.rating' },
+            else: 0
+          }
+        },
+        totalReviews: { $size: '$reviews' }
+      }
+    },
+    { $sort: { [sortBy]: sortOrder } },
+    { $skip: skip },
+    { $limit: limit }
+  ]);
+
+  const total = await CarsModel.countDocuments(match);
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit)
+    },
+    data: cars
+  };
 };
 
 
 // get car by id
 const getSingleCarFromDB = async (id: string) => {
-  const car = await CarsModel.findById(id);
-  if (!car) {
+  const car = await CarsModel.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id)
+      }
+    },
+    {
+      $lookup: {
+        from: 'ratings', 
+        localField: '_id',
+        foreignField: 'carId',
+        as: 'reviews',
+        pipeline:[
+          {
+            $project:{
+              rating:1,
+              review:1,
+            }
+          }
+        ]
+      }
+    },
+    
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userDetails',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              email: 1,
+              location: 1,
+              image: 1,
+              description: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        averageRating: {
+          $cond: {
+            if: { $gt: [{ $size: '$reviews' }, 0] },
+            then: { $avg: '$reviews.rating' },
+            else: 0
+          }
+        },
+        totalReviews: {
+          $size: '$reviews'
+        }
+      }
+    }
+    
+  ]);
+  if (!car.length) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');
   }
-  return car;
+
+  return car[0];
 };
 
 // update car
