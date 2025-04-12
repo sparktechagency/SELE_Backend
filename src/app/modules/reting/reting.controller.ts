@@ -17,7 +17,8 @@ const createRating = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllRating = catchAsync(async (req: Request, res: Response) => {
-  const result = await RatingServices.getAllRatingFromDB();
+  const paginationOptions = req.query;
+  const result = await RatingServices.getAllRatingFromDB(paginationOptions);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,

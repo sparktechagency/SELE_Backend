@@ -69,9 +69,23 @@ const getAllCarsFromDB = async (filters: any) => {
         as: 'reviews',
         pipeline: [
           {
+            $lookup: {
+              from: 'users',
+              localField: 'userId',
+              foreignField: '_id',
+              as: 'userDetails'
+            }
+          },
+          {
+            $unwind: '$userDetails'
+          },
+          {
             $project: {
               rating: 1,
               review: 1,
+              'userDetails.name': 1,
+              'userDetails.location': 1,
+              'userDetails.image': 1
             }
           }
         ]
@@ -98,28 +112,6 @@ const getAllCarsFromDB = async (filters: any) => {
     },
     {
       $unwind: '$category'
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'userId',
-        foreignField: '_id',
-        as: 'userId',
-        pipeline: [
-          {
-            $project: {
-              name: 1,
-              email: 1,
-              location: 1,
-              image: 1,
-              description: 1
-            }
-          }
-        ]
-      }
-    },
-    {
-      $unwind: '$userId'
     },
     {
       $addFields: {
