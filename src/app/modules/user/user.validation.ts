@@ -8,7 +8,7 @@ const createUserZodSchema = z.object({
     confirmPassword: z.string({ required_error: 'Confirm Password is required' }),
     location: z.string({ required_error: 'Location is required' }),
     profile: z.string().optional(),
-    
+    description:z.string().optional(),
   }),
 });
 
@@ -19,6 +19,7 @@ const updateUserZodSchema = z.object({
   password: z.string().optional(),
   location: z.string().optional(),
   image: z.string().optional(),
+  description:z.string().optional()
 });
 
 export const UserValidation = {

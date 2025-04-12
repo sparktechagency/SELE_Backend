@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
 import { fuelType } from "../../../enums/fuel";
-import { category } from "../../../enums/category";
 
 
 export type ICars = {
@@ -17,4 +16,6 @@ export type ICars = {
   category:Types.ObjectId,
   carSeatsNumber: number,
   transmission: "Manual" | "Automatic",
+  protection: [string],
+  userId: Types.ObjectId
 };

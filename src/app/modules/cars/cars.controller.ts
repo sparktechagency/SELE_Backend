@@ -5,7 +5,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
 const createCar = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id; // Extract the userId from the authenticated user
+  const userId = req.user?.id;
   if (!userId) {
     return sendResponse(res, {
       success: false,
@@ -29,16 +29,33 @@ const createCar = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllCars = catchAsync(async (req: Request, res: Response) => {
-  const filter = req.query;
+  const filter: any = req.query;
+
+  // Ensure the default values for pagination
+  filter.page = filter.page || 1;
+  filter.limit = filter.limit || 10;
+
+  // Call the service with the filters
   const result = await CarsServices.getAllCarsFromDB(filter);
+
+  // Pagination info calculation based on the result's length
+  const pagination = {
+    page: Number(filter.page),
+    limit: Number(filter.limit),
+    total: result.length, // You may want to calculate the total records here, or in the service
+    totalPage: Math.ceil(result?.length / Number(filter?.limit)),
+  };
+
+  // Send the response with pagination data
   sendResponse(res, {
     statusCode: 200,
-    totalLength: result.length,
     success: true,
     message: 'Cars fetched successfully',
-    data: result,
+    data: result, // The actual data
+    pagination, // Pagination info
   });
 });
+
 
 const getSingleCar = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;

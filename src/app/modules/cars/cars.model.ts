@@ -1,9 +1,9 @@
 import { Schema, model } from 'mongoose';
 import { ICars } from './cars.interface';
 import { fuelType } from '../../../enums/fuel';
-import { category } from '../../../enums/category';
 
 const carsSchema = new Schema<ICars>({
+  title: { type: String, required: true },
   carImage: { type: String, required: true },
   brandName: { type: Schema.Types.ObjectId, ref: "Brand", required: true },
   description: { type: String, required: true },
@@ -17,7 +17,9 @@ const carsSchema = new Schema<ICars>({
   category: { type: Schema.Types.ObjectId,ref:"Category",  required: true },
   transmission: { type: String, enum: ["Manual", "Automatic"], required: true },
   kilometresData: { type: String, required: true },
-  carSeatsNumber: { type: Number, required: true }
+  carSeatsNumber: { type: Number, required: true },
+  protection: { type: [String], required: true },
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 },
 {
   timestamps: true,

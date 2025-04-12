@@ -57,6 +57,9 @@ const userSchema = new Schema<IUser, UserModal>(
       type: Boolean,
       default: false,
     },
+    description: {
+      type: String,
+    },
     authentication: {
       type: {
         isResetPassword: {

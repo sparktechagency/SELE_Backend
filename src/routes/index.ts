@@ -10,6 +10,7 @@ import { AboutRoutes } from '../app/modules/about/about.route';
 import { termsAndConditionsRoutes } from '../app/modules/termsandconditions/termsandconditions.route';
 import { PrivacyAndPolicyRoutes } from '../app/modules/privacyandpolicy/privacyandpolicy.route';
 import { CategoryRoutes } from '../app/modules/category/category.route';
+import { RatingRoutes } from '../app/modules/reting/reting.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -22,41 +23,45 @@ const apiRoutes = [
     route: AuthRoutes,
   },
   {
-    path: "/",
-    route: BrandRoutes
+    path: '/',
+    route: BrandRoutes,
   },
   {
-    path: "/cars",
-    route: CarsRoutes
+    path: '/cars',
+    route: CarsRoutes,
   },
   {
-    path: "/reserve-details",
-    route: reserveDetailsRoutes
+    path: '/reserve-details',
+    route: reserveDetailsRoutes,
   },
   {
-    path: "/chat",
-    route: ChatRoutes
+    path: '/chat',
+    route: ChatRoutes,
   },
   {
-    path: "/message",
-    route: MessageRoutes
+    path: '/message',
+    route: MessageRoutes,
   },
   {
-    path: "/about",
-    route: AboutRoutes
+    path: '/about',
+    route: AboutRoutes,
   },
   {
-    path: "/terms-and-conditions",
-    route: termsAndConditionsRoutes
+    path: '/terms-and-conditions',
+    route: termsAndConditionsRoutes,
   },
   {
-    path: "/privacy-and-policy",
-    route: PrivacyAndPolicyRoutes
+    path: '/privacy-and-policy',
+    route: PrivacyAndPolicyRoutes,
   },
   {
-    path:"/category",
-    route: CategoryRoutes
-  }
+    path: '/category',
+    route: CategoryRoutes,
+  },
+  {
+    path: '/rating',
+    route: RatingRoutes,
+  },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

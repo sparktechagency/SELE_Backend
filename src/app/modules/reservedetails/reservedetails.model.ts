@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { IReserveDetails } from './reservedetails.interface';
 
-const reservedetailsSchema = new Schema<IReserveDetails>({
+const reserveDetailsSchema = new Schema<IReserveDetails>({
   carId: {
     type: Schema.Types.ObjectId,
     ref: "Cars"
@@ -30,8 +30,8 @@ const reservedetailsSchema = new Schema<IReserveDetails>({
     type: Schema.Types.Mixed,
     enum: ["InProgress", "Assigned", "Delivered", "Cancelled"],
     required: true,
-    default: "In Progress"
+    default: "InProgress"
   }
 });
 
-export const ReserveDetailsModel = model<IReserveDetails>('Reservedetails', reservedetailsSchema);
+export const ReserveDetailsModel = model<IReserveDetails>('Reservedetails', reserveDetailsSchema);

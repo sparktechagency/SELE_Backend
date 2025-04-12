@@ -18,6 +18,7 @@ export type IUser = {
   };
   latitude?: number;
   longitude?: number;
+  description?: string;
 };
 
 export type UserModal = {
