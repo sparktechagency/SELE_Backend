@@ -14,6 +14,14 @@ const createReserveDetails = async (payload: IReserveDetails) => {
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
+  const notificationPayload = {
+    userId: reserveData?._id,
+    title: 'Reserve Details In Progress',
+    message: `Your reserve details are in InProgress`,
+    type: 'reserve_details',
+  };
+
+  await sendNotifications(notificationPayload as any);
   return reserveData;
 };
 
