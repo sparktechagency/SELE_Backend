@@ -18,7 +18,7 @@ export const seedSuperAdmin = async () => {
     email: config.super_admin.email,
     role: USER_ROLES.SUPER_ADMIN,
   });
-  logger.info(':) Successfully admin connected to the database!');
+  logger.info('✅ Successfully admin connected to the database!');
   if (!isExistSuperAdmin) {
     await User.create(payload);
     logger.info('✨ Super Admin account has been successfully created!');
