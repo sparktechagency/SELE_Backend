@@ -11,6 +11,7 @@ import { termsAndConditionsRoutes } from '../app/modules/termsandconditions/term
 import { PrivacyAndPolicyRoutes } from '../app/modules/privacyandpolicy/privacyandpolicy.route';
 import { CategoryRoutes } from '../app/modules/category/category.route';
 import { RatingRoutes } from '../app/modules/reting/reting.route';
+import { NotificationRoute } from '../app/modules/notification/notification.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -62,6 +63,10 @@ const apiRoutes = [
     path: '/rating',
     route: RatingRoutes,
   },
+  {
+    path:"/",
+    route:NotificationRoute
+  }
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
