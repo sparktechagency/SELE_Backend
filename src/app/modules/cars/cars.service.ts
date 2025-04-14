@@ -14,6 +14,145 @@ const createCarIntoDB = async (payload: ICars, userId: string) => {
 };
 
 // get all car
+// const getAllCarsFromDB = async (filters: any) => {
+//   const page = filters.page ? Number(filters.page) : 1;
+//   const limit = filters.limit ? Number(filters.limit) : 10;
+//   const skip = (page - 1) * limit;
+
+//   const match: any = {};
+
+//   // Price filter
+//   if (filters.minPrice || filters.maxPrice) {
+//     const minPrice = Number(filters.minPrice) || 0;
+//     const maxPrice = Number(filters.maxPrice);
+//     if (!isNaN(maxPrice)) {
+//       match.price = {
+//         $gte: Math.min(minPrice, maxPrice),
+//         $lte: Math.max(minPrice, maxPrice),
+//       };
+//     }
+//   }
+
+//   // Kilometres
+//   if (filters.kilometresData) {
+//     const kmValue = Number(filters.kilometresData);
+//     if (!isNaN(kmValue)) {
+//       match.kilometresData = kmValue;
+//     }
+//   }
+
+//   // Brand
+//   if (filters.brandName) {
+//     match.brandName = new mongoose.Types.ObjectId(filters.brandName);
+//   }
+
+//   // Transmission
+//   if (filters.transmission) {
+//     match.transmission = filters.transmission;
+//   }
+
+//   // Category
+//   if (filters.category) {
+//     match.category = new mongoose.Types.ObjectId(filters.category);
+//   }
+
+//   const sortBy = filters.sortBy || 'createdAt';
+//   const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
+
+//   const cars = await CarsModel.aggregate([
+//     { $match: match },
+//     {
+//       $lookup: {
+//         from: 'ratings',
+//         localField: '_id',
+//         foreignField: 'carId',
+//         as: 'reviews',
+//         pipeline: [
+//           {
+//             $lookup: {
+//               from: 'users',
+//               localField: 'userId',
+//               foreignField: '_id',
+//               as: 'userDetails',
+//               pipeline: [
+//                 {
+//                   $project: {
+//                     name: 1,
+//                     email: 1,
+//                     location: 1,
+//                     image: 1,
+//                     description: 1,
+//                   },
+//                 },
+//               ],
+//             },
+//           },
+//           {
+//             $unwind: '$userDetails',
+//           },
+//           {
+//             $project: {
+//               rating: 1,
+//               review: 1,
+//               'userDetails.name': 1,
+//               'userDetails.location': 1,
+//               'userDetails.image': 1,
+//             },
+//           },
+//         ],
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'brands',
+//         localField: 'brandName',
+//         foreignField: '_id',
+//         as: 'brandName',
+//       },
+//     },
+//     {
+//       $unwind: '$brandName',
+//     },
+//     {
+//       $lookup: {
+//         from: 'categories',
+//         localField: 'category',
+//         foreignField: '_id',
+//         as: 'category',
+//       },
+//     },
+//     {
+//       $unwind: '$category',
+//     },
+//     {
+//       $addFields: {
+//         averageRating: {
+//           $cond: {
+//             if: { $gt: [{ $size: '$reviews' }, 0] },
+//             then: { $avg: '$reviews.rating' },
+//             else: 0,
+//           },
+//         },
+//         totalReviews: { $size: '$reviews' },
+//       },
+//     },
+//     { $sort: { [sortBy]: sortOrder } },
+//     { $skip: skip },
+//     { $limit: limit },
+//   ]);
+
+//   const total = await CarsModel.countDocuments(match);
+
+//   return {
+//     meta: {
+//       total,
+//       page,
+//       limit,
+//       totalPage: Math.ceil(total / limit),
+//     },
+//     data: cars,
+//   };
+// };
 const getAllCarsFromDB = async (filters: any) => {
   const page = filters.page ? Number(filters.page) : 1;
   const limit = filters.limit ? Number(filters.limit) : 10;
@@ -61,114 +200,7 @@ const getAllCarsFromDB = async (filters: any) => {
 
   const cars = await CarsModel.aggregate([
     { $match: match },
-    {
-      $lookup: {
-        from: 'ratings',
-        localField: '_id',
-        foreignField: 'carId',
-        as: 'reviews',
-        pipeline: [
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'userId',
-              foreignField: '_id',
-              as: 'userDetails'
-            }
-          },
-          {
-            $unwind: '$userDetails'
-          },
-          {
-            $project: {
-              rating: 1,
-              review: 1,
-              'userDetails.name': 1,
-              'userDetails.location': 1,
-              'userDetails.image': 1
-            }
-          }
-        ]
-      }
-    },
-    {
-      $lookup: {
-        from: 'brands',
-        localField: 'brandName',
-        foreignField: '_id',
-        as: 'brandName'
-      }
-    },
-    {
-      $unwind: '$brandName'
-    },
-    {
-      $lookup: {
-        from: 'categories',
-        localField: 'category',
-        foreignField: '_id',
-        as: 'category'
-      }
-    },
-    {
-      $unwind: '$category'
-    },
-    {
-      $addFields: {
-        averageRating: {
-          $cond: {
-            if: { $gt: [{ $size: '$reviews' }, 0] },
-            then: { $avg: '$reviews.rating' },
-            else: 0
-          }
-        },
-        totalReviews: { $size: '$reviews' }
-      }
-    },
-    { $sort: { [sortBy]: sortOrder } },
-    { $skip: skip },
-    { $limit: limit }
-  ]);
-
-  const total = await CarsModel.countDocuments(match);
-
-  return {
-    meta: {
-      total,
-      page,
-      limit,
-      totalPage: Math.ceil(total / limit)
-    },
-    data: cars
-  };
-};
-
-
-// get car by id
-const getSingleCarFromDB = async (id: string) => {
-  const car = await CarsModel.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(id)
-      }
-    },
-    {
-      $lookup: {
-        from: 'ratings', 
-        localField: '_id',
-        foreignField: 'carId',
-        as: 'reviews',
-        pipeline:[
-          {
-            $project:{
-              rating:1,
-              review:1,
-            }
-          }
-        ]
-      }
-    },
-    
+    // Get car owner details (userDetails)
     {
       $lookup: {
         from: 'users',
@@ -182,11 +214,153 @@ const getSingleCarFromDB = async (id: string) => {
               email: 1,
               location: 1,
               image: 1,
-              description: 1
-            }
-          }
-        ]
-      }
+              description: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: '$userDetails', // Convert array to object
+    },
+    // Get reviews (with reviewer details)
+    {
+      $lookup: {
+        from: 'ratings',
+        localField: '_id',
+        foreignField: 'carId',
+        as: 'reviews',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'userId',
+              foreignField: '_id',
+              as: 'reviewerDetails',
+              pipeline: [
+                {
+                  $project: {
+                    name: 1,
+                    location: 1,
+                    image: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: '$reviewerDetails',
+          },
+          {
+            $project: {
+              rating: 1,
+              review: 1,
+              'reviewerDetails.name': 1,
+              'reviewerDetails.location': 1,
+              'reviewerDetails.image': 1,
+            },
+          },
+        ],
+      },
+    },
+    // Get brand details
+    {
+      $lookup: {
+        from: 'brands',
+        localField: 'brandName',
+        foreignField: '_id',
+        as: 'brandName',
+      },
+    },
+    {
+      $unwind: '$brandName',
+    },
+    // Get category details
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    {
+      $unwind: '$category',
+    },
+    // Calculate average rating and total reviews
+    {
+      $addFields: {
+        averageRating: {
+          $cond: {
+            if: { $gt: [{ $size: '$reviews' }, 0] },
+            then: { $avg: '$reviews.rating' },
+            else: 0,
+          },
+        },
+        totalReviews: { $size: '$reviews' },
+      },
+    },
+    { $sort: { [sortBy]: sortOrder } },
+    { $skip: skip },
+    { $limit: limit },
+  ]);
+
+  const total = await CarsModel.countDocuments(match);
+
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+    data: cars,
+  };
+};
+
+// get car by id
+const getSingleCarFromDB = async (id: string) => {
+  const car = await CarsModel.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $lookup: {
+        from: 'ratings',
+        localField: '_id',
+        foreignField: 'carId',
+        as: 'reviews',
+        pipeline: [
+          {
+            $project: {
+              rating: 1,
+              review: 1,
+            },
+          },
+        ],
+      },
+    },
+
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userDetails',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              email: 1,
+              location: 1,
+              image: 1,
+              description: 1,
+            },
+          },
+        ],
+      },
     },
     {
       $addFields: {
@@ -194,15 +368,14 @@ const getSingleCarFromDB = async (id: string) => {
           $cond: {
             if: { $gt: [{ $size: '$reviews' }, 0] },
             then: { $avg: '$reviews.rating' },
-            else: 0
-          }
+            else: 0,
+          },
         },
         totalReviews: {
-          $size: '$reviews'
-        }
-      }
-    }
-    
+          $size: '$reviews',
+        },
+      },
+    },
   ]);
   if (!car.length) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');

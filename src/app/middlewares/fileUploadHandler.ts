@@ -70,7 +70,6 @@ const fileUploadHandler = () => {
 
   //file filter
   const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
-
     if (file.fieldname === 'image' || file.fieldname === 'logo' || file.fieldname === 'carImage' || file.fieldname === "yourID" || file.fieldname === "drivingLicense" || file.fieldname === "messageImage") {
       if (
         file.mimetype === 'image/jpeg' ||

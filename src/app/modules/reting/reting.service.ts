@@ -4,6 +4,7 @@ import { IRating } from './reting.interface';
 import { Rating } from './reting.model';
 import { IPaginationOptions } from '../../../types/pagination';
 import { paginationHelper } from '../../../helpers/paginationHelper';
+import { Types } from 'mongoose';
 
 const createRatingIntoDB = async (
   payload: IRating,
@@ -17,32 +18,40 @@ const createRatingIntoDB = async (
 };
 
 const getAllRatingFromDB = async (
-    paginationOptions: IPaginationOptions
-  ): Promise<{ meta: { total: number; page: number; limit: number }; data: IRating[] }> => {
-    const { page, limit, skip, sortBy, sortOrder } =
+  carId: string,
+  paginationOptions: IPaginationOptions
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
     paginationHelper.calculatePagination(paginationOptions);
 
-    const result = await Rating.find()
-    .populate({
-      path: 'userId',
-      select: 'name email',
-    })
-    .skip(skip)
-    .limit(limit)
-    .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 });
+  // Validate carId format
+  console.log(carId);
+  if (!Types.ObjectId.isValid(carId)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid car ID format");
+  }
 
-  const total = await Rating.countDocuments();
+  const query = { carId: new Types.ObjectId(carId) };
+
+  const [result, total] = await Promise.all([
+    Rating.find(query)
+      .populate('userId', 'name email image')
+      .populate('carId', 'title carImage')
+      .skip(skip)
+      .limit(limit)
+      .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 }),
+      
+    Rating.countDocuments(query)
+  ]);
+
+  // console.log("Raw query:", query);
+  // console.log("Found ratings:", result.length);
+  // console.log("Total count:", total);
 
   return {
-    meta: {
-      total,
-      page,
-      limit,
-    },
-    data: result,
+    meta: { total, page, limit },
+    data: result
   };
 };
-
 
 const getSingleRatingFromDB = async (id: string): Promise<IRating | null> => {
   const result = await Rating.findById(id).populate({
@@ -61,16 +70,16 @@ const getSingleRatingFromDB = async (id: string): Promise<IRating | null> => {
       $group: {
         _id: '$carId',
         averageRating: { $avg: '$rating' },
-        totalRatings: { $sum: 1 }
-      }
-    }
+        totalRatings: { $sum: 1 },
+      },
+    },
   ]);
 
   // Combine the rating details with average and total ratings
   const response = {
     ...result.toObject(),
     averageRating: aggregateResult[0]?.averageRating || 0,
-    totalRatings: aggregateResult[0]?.totalRatings || 0
+    totalRatings: aggregateResult[0]?.totalRatings || 0,
   };
 
   return response;

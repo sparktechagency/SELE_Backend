@@ -20,10 +20,10 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
 
 
     const options = {
-        page: Number(page) || 1, // Default to page 1 if not provided
-        limit: Number(limit) || 10, // Default to 10 records per page if not provided
-        sortBy: sortBy || 'createdAt', // Default sort by 'createdAt' field
-        sortOrder: sortOrder || 'desc', // Default sort order 'desc'
+        page: Number(page) || 1, 
+        limit: Number(limit) || 10, 
+        sortBy: sortBy || 'createdAt', 
+        sortOrder: sortOrder || 'desc', 
         progressStatus: progressStatus
     };
 
@@ -38,16 +38,8 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
         message: "Successfully retrieved all reserve details",
         // @ts-ignore
         data: result.data,
-        pagination: {
-            // @ts-ignore
-            page: result.page,
-            // @ts-ignore
-            limit: result.limit,
-            // @ts-ignore
-            totalRecords: result.totalRecords,
-            // @ts-ignore
-            totalPages: result.totalPages,
-        }
+        // @ts-ignore
+        pagination: result.pagination,
     });
 });
 

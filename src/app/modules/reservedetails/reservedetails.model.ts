@@ -31,6 +31,10 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
     enum: ["InProgress", "Assigned", "Delivered", "Cancelled"],
     required: true,
     default: "InProgress"
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
   }
 });
 
