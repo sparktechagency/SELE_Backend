@@ -38,10 +38,10 @@ const getAllReserveData = async (options: IPaginationOptions) => {
         path: 'carId',
         populate: [
           {
-            path: 'userId',
-            select: 'name email image description location role',
+            path: 'userId brandName',
+            select: 'name email image description location role brandName logo',
           },
-          { path: 'category', select: 'category' }, // ✅ full category
+          { path: 'category', select: 'category' }, 
         ],
       },
       {
@@ -55,19 +55,19 @@ const getAllReserveData = async (options: IPaginationOptions) => {
     data.map(async reserve => {
       const carId = reserve.carId._id;
 
-      // ✅ Calculate rental days
+      //  Calculate rental days
       const start = new Date(reserve.startDate);
       const end = new Date(reserve.endDate);
       const timeDiff = end.getTime() - start.getTime();
       const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 
-      // ✅ Price calculations
+      // Price calculations
       const pricePerDay = (reserve.carId as any).price;
       const price = pricePerDay * Day;
       const appCharge = 10;
       const finalTotal = +(price + appCharge).toFixed(2);
 
-      // ✅ Rating aggregation
+      // Rating aggregation
       const [ratingAggregation] = await Rating.aggregate([
         { $match: { carId } },
         {
