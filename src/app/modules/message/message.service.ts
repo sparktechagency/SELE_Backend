@@ -27,7 +27,6 @@ const getMessageFromDB = async (id: string, query: Record<string, any>) => {
     }
 
     const result = new QueryBuilder(Message.find({ chatId: id }), query);
-    console.log(result, 'result');
     const messages = await result.modelQuery.populate('sender');
     const pagination = await result.getPaginationInfo();
 

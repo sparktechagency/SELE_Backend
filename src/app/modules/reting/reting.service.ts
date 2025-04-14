@@ -10,7 +10,6 @@ const createRatingIntoDB = async (
   user: any
 ): Promise<IRating | null> => {
   const result = await Rating.create({ ...payload, userId: user.id });
-  console.log(result);
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Rating');
   }

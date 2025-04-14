@@ -6,7 +6,6 @@ import { StatusCodes } from 'http-status-codes';
 const createPrivacyAndPolicyIntoDB = async (payload: IPrivacyAndPolicy) => {
     await PrivacyAndPolicy.deleteMany({});
     const result = await PrivacyAndPolicy.create(payload)
-    console.log(result, "result");
     if (!result) {
         throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create privacy and policy")
     }
