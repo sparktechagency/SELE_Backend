@@ -6,10 +6,6 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
     type: Schema.Types.ObjectId,
     ref: "Cars"
   },
-  name: {
-    type: String,
-    required: true
-  },
   startDate: {
     type: String,
     required: true
@@ -34,7 +30,8 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
   },
   userId: {
     type: Schema.Types.ObjectId,
-    ref: "User"
+    ref: "User",
+    required: false
   }
 });
 

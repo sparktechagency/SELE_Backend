@@ -162,12 +162,13 @@ const getAllCarsFromDB = async (filters: any) => {
 
   // Price filter
   if (filters.minPrice || filters.maxPrice) {
-    const minPrice = Number(filters.minPrice) || 0;
-    const maxPrice = Number(filters.maxPrice);
-    if (!isNaN(maxPrice)) {
+    const minPrice = filters.minPrice ? Number(filters.minPrice) : 0;
+    const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : Infinity;
+
+    if (!isNaN(minPrice) && !isNaN(maxPrice)) {
       match.price = {
-        $gte: Math.min(minPrice, maxPrice),
-        $lte: Math.max(minPrice, maxPrice),
+        $gte: Math.min(minPrice, maxPrice), // Ensure the smaller value is set as the minimum
+        $lte: Math.max(minPrice, maxPrice), // Ensure the larger value is set as the maximum
       };
     }
   }

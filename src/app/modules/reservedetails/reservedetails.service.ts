@@ -9,12 +9,15 @@ import { Rating } from '../reting/reting.model';
 
 // create reserve Data
 
-const createReserveDetails = async (payload: IReserveDetails) => {
-  const reserveData = await ReserveDetailsModel.create(payload);
+const createReserveDetails = async (payload: IReserveDetails, user:string) => {
+  const newPayload = { ...payload, userId: user };
+  const reserveData = await ReserveDetailsModel.create(payload,newPayload);
+  console.log("result from controller", reserveData);
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
   const notificationPayload = {
+    // @ts-ignore
     userId: reserveData?._id,
     title: 'Reserve Details In Progress',
     message: `Your reserve details are in InProgress`,

@@ -13,6 +13,7 @@ const router = express.Router();
 // create
 router.post(
     '/',
+   
     fileUploadHandler(),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -46,6 +47,7 @@ router.post(
         }
     },
     validateRequest(ReserveDetailsValidations.reserveDetailsSchema),
+    auth(USER_ROLES.USER),
     ReserveDetailsController.createReserveDetails
 );
 

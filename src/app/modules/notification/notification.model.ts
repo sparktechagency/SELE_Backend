@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 import { INotification } from './notification.interface';
 
 const notificationSchema = new Schema<INotification>({
-  userId: { type: String, required: true },
+  userId: { type: String, required: false },
   title: { type: String, required: true },
   message: { type: String, required: true },
   filePath: { type: String, enum: ['conversion', 'reservation', 'allOrder'] },
