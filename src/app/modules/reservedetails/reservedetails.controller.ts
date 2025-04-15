@@ -17,8 +17,6 @@ const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
 
 const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
     const { page, limit, sortBy, sortOrder, progressStatus } = req.query;
-
-
     const options = {
         page: Number(page) || 1, 
         limit: Number(limit) || 10, 

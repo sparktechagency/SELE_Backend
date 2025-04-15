@@ -6,6 +6,8 @@ export type IRating = {
   userId: Types.ObjectId;
   rating: Number;
   review: String;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export type RatingModel = Model<IRating>;

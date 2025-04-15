@@ -28,9 +28,9 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
   },
   progressStatus: {
     type: Schema.Types.Mixed,
-    enum: ["InProgress", "Assigned", "Delivered", "Cancelled"],
+    enum: ["Request","InProgress", "Assigned", "Delivered", "Cancelled"],
     required: true,
-    default: "InProgress"
+    default: "Request"
   },
   userId: {
     type: Schema.Types.ObjectId,

@@ -9,6 +9,7 @@ export type IReserveDetails = {
   drivingLicense: string[],
   yourID: string[],
   progressStatus: progressStatus
-  userId?: Types.ObjectId
+  userId?: Types.ObjectId,
+  createdAt?: Date
 };
 
