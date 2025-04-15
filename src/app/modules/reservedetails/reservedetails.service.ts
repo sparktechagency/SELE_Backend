@@ -6,13 +6,13 @@ import { paginationHelper } from '../../../helpers/paginationHelper';
 import { IPaginationOptions } from '../../../types/pagination';
 import { sendNotifications } from '../../../helpers/notificationSender';
 import { Rating } from '../reting/reting.model';
+import { CarsModel } from '../cars/cars.model';
 
 // create reserve Data
 
-const createReserveDetails = async (payload: IReserveDetails, user:string) => {
+const createReserveDetails = async (payload: IReserveDetails, user: string) => {
   const newPayload = { ...payload, userId: user };
-  const reserveData = await ReserveDetailsModel.create(payload,newPayload);
-  console.log("result from controller", reserveData);
+  const reserveData = await ReserveDetailsModel.create(newPayload);
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
@@ -30,16 +30,30 @@ const createReserveDetails = async (payload: IReserveDetails, user:string) => {
 
 // get all reserve data
 /// agency and rating details
-const getAllReserveData = async (options: IPaginationOptions) => {
+const getAllReserveData = async (
+  options: IPaginationOptions,
+  userId: string,
+  role?: string
+) => {
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelper.calculatePagination(options);
 
-  const filter: any = {};
-  if ((options as any).progressStatus) {
-    filter.progressStatus = (options as any).progressStatus;
+  let filter: any = {};
+
+  if (role === 'AGENCY') {
+    const cars = await CarsModel.find({ agencyId: userId }).select('_id');
+    const carIds = cars.map(car => car._id);
+    filter['carId'] = { $in: carIds };
+  } else if (role === 'USER') {
+    filter['userId'] = userId;
   }
 
-  // 1. Fetch reserve details with carId -> category, userId populated
+  // @ts-ignore
+  if (options.progressStatus) {
+    // @ts-ignore
+    filter['progressStatus'] = options.progressStatus;
+  }
+
   const data = await ReserveDetailsModel.find(filter)
     .skip(skip)
     .limit(limit)
@@ -49,10 +63,11 @@ const getAllReserveData = async (options: IPaginationOptions) => {
         path: 'carId',
         populate: [
           {
-            path: 'userId brandName',
-            select: 'name email image description location role brandName logo latitude longitude',
+            path: 'agencyId brandName',
+            select:
+              'name email image description location role brandName logo latitude longitude',
           },
-          { path: 'category', select: 'category' }, 
+          { path: 'category', select: 'category' },
         ],
       },
       {

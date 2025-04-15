@@ -19,7 +19,7 @@ const carsSchema = new Schema<ICars>({
   kilometresData: { type: String, required: true },
   carSeatsNumber: { type: Number, required: true },
   protection: { type: [String], required: true },
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  agencyId: { type: Schema.Types.ObjectId, ref: "User", required: true },
 },
 {
   timestamps: true,

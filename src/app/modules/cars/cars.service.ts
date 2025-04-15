@@ -5,8 +5,8 @@ import { CarsModel } from './cars.model';
 import mongoose from 'mongoose';
 import { paginationHelper } from '../../../helpers/paginationHelper';
 // create car
-const createCarIntoDB = async (payload: ICars, userId: string) => {
-  const car = await CarsModel.create({ ...payload, userId });
+const createCarIntoDB = async (payload: ICars, agencyId: string) => {
+  const car = await CarsModel.create({ ...payload, agencyId });
   if (!car) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create car');
   }

@@ -55,7 +55,8 @@ router.post(
 
 
 // get all reserve details
-router.get("/", ReserveDetailsController.getAllReserveDetails)
+router.get("/",
+    auth(USER_ROLES.USER, USER_ROLES.AGENCY),  ReserveDetailsController.getAllReserveDetails)
 
 router.get("/:id", ReserveDetailsController.getSingleReserveDetails)
 

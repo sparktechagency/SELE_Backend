@@ -28,9 +28,10 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
     };
 
     // Log the final options passed to the service
-
+    const userId = req.user.id;
+    const role = req.user.role;
     // @ts-ignore
-    const result = await ReserveDetailsServices.getAllReserveData(options);
+    const result = await ReserveDetailsServices.getAllReserveData(options, userId, role);
 
     sendResponse(res, {
         statusCode: 200,

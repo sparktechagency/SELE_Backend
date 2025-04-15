@@ -17,5 +17,5 @@ export type ICars = {
   carSeatsNumber: number,
   transmission: "Manual" | "Automatic",
   protection: [string],
-  userId: Types.ObjectId
+  agencyId: Types.ObjectId
 };

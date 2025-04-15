@@ -5,8 +5,8 @@ import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
 const createCar = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
+  const agencyId = req.user?.id;
+  if (!agencyId) {
     return sendResponse(res, {
       success: false,
       statusCode: StatusCodes.BAD_REQUEST,
@@ -17,7 +17,7 @@ const createCar = catchAsync(async (req: Request, res: Response) => {
   const carData = req.body;
 
   // Create the car in the DB using the service function
-  const createdCar = await CarsServices.createCarIntoDB(carData, userId);
+  const createdCar = await CarsServices.createCarIntoDB(carData, agencyId);
 
   // Return a success response
   sendResponse(res, {
