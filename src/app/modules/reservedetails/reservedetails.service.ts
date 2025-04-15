@@ -61,16 +61,16 @@ const getAllReserveData = async (options: IPaginationOptions) => {
   // 2. Add ratings, rent days, total price etc
   const reserveDataWithRatings = await Promise.all(
     data.map(async reserve => {
-      const carId = reserve.carId._id;
+      const carId = reserve.carId?._id;
 
       //  Calculate rental days
-      const start = new Date(reserve.startDate);
-      const end = new Date(reserve.endDate);
+      const start = new Date(reserve?.startDate);
+      const end = new Date(reserve?.endDate);
       const timeDiff = end.getTime() - start.getTime();
       const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 
       // Price calculations
-      const pricePerDay = (reserve.carId as any).price;
+      const pricePerDay = (reserve?.carId as any)?.price;
       const price = pricePerDay * Day;
       const appCharge = 10;
       const finalTotal = +(price + appCharge).toFixed(2);
@@ -97,15 +97,15 @@ const getAllReserveData = async (options: IPaginationOptions) => {
         .populate('userId', 'name email image');
 
       const carWithRatings = {
-        ...(reserve.carId as any)._doc,
+        ...(reserve.carId as any)?._doc,
         ratings: {
           averageRating: ratingAggregation?.averageRating?.toFixed(1) || 0,
           totalRatings: ratingAggregation?.totalRatings || 0,
           reviews: {
             data: reviews.map(r => ({
-              userId: r.userId,
-              rating: r.rating,
-              review: r.review,
+              userId: r?.userId,
+              rating: r?.rating,
+              review: r?.review,
             })),
             pagination: {
               page: ratingPage,
