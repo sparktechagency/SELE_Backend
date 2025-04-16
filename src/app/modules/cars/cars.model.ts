@@ -20,6 +20,7 @@ const carsSchema = new Schema<ICars>({
   carSeatsNumber: { type: Number, required: true },
   protection: { type: [String], required: true },
   agencyId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  carModel: { type: String, required: true },
 },
 {
   timestamps: true,

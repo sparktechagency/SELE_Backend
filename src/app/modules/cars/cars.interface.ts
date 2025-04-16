@@ -18,4 +18,5 @@ export type ICars = {
   transmission: "Manual" | "Automatic",
   protection: [string],
   agencyId: Types.ObjectId
+  carModel: string,
 };
