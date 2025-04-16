@@ -9,5 +9,6 @@ export type IReserveDetails = {
   yourID: string[];
   progressStatus: progressStatus;
   userId?: Types.ObjectId;
+  orderId?: String;
   createdAt?: Date;
 };

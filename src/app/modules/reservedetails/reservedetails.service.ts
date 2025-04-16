@@ -11,7 +11,12 @@ import { CarsModel } from '../cars/cars.model';
 // create reserve Data
 
 const createReserveDetails = async (payload: IReserveDetails, user: string) => {
-  const newPayload = { ...payload, userId: user };
+  const orderId = Math.floor(100000 + Math.random() * 900000);
+  const newData = {
+    ...payload,
+    orderId,
+  };
+  const newPayload = { ...newData, userId: user };
   const reserveData = await ReserveDetailsModel.create(newPayload);
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");

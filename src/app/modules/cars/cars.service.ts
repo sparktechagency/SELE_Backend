@@ -205,7 +205,7 @@ const getAllCarsFromDB = async (filters: any) => {
     {
       $lookup: {
         from: 'users',
-        localField: 'userId',
+        localField: 'agencyId',
         foreignField: '_id',
         as: 'userDetails',
         pipeline: [
@@ -305,9 +305,9 @@ const getAllCarsFromDB = async (filters: any) => {
     { $skip: skip },
     { $limit: limit },
   ]);
-
+ 
   const total = await CarsModel.countDocuments(match);
-
+ 
   return {
     meta: {
       total,
