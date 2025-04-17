@@ -4,7 +4,7 @@ export type IMessage = {
   chatId: Types.ObjectId,
   sender: Types.ObjectId,
   text?: string,
-  messageImage?: string,
+  messageImage?: string[];
   type: "text" | "messageImage" | "both",
 };
 

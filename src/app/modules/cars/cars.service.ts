@@ -12,8 +12,6 @@ const createCarIntoDB = async (payload: ICars, agencyId: string) => {
   }
   return car;
 };
-
-// get all car
 // const getAllCarsFromDB = async (filters: any) => {
 //   const page = filters.page ? Number(filters.page) : 1;
 //   const limit = filters.limit ? Number(filters.limit) : 10;
@@ -167,8 +165,8 @@ const getAllCarsFromDB = async (filters: any) => {
 
     if (!isNaN(minPrice) && !isNaN(maxPrice)) {
       match.price = {
-        $gte: Math.min(minPrice, maxPrice), // Ensure the smaller value is set as the minimum
-        $lte: Math.max(minPrice, maxPrice), // Ensure the larger value is set as the maximum
+        $gte: Math.min(minPrice, maxPrice), 
+        $lte: Math.max(minPrice, maxPrice),
       };
     }
   }
@@ -305,9 +303,9 @@ const getAllCarsFromDB = async (filters: any) => {
     { $skip: skip },
     { $limit: limit },
   ]);
- 
+
   const total = await CarsModel.countDocuments(match);
- 
+
   return {
     meta: {
       total,
@@ -363,6 +361,52 @@ const getSingleCarFromDB = async (id: string) => {
         ],
       },
     },
+    // Get brand details
+    {
+      $lookup: {
+        from: 'brands',
+        localField: 'brandName',
+        foreignField: '_id',
+        as: 'brandName',
+      },
+    },
+    {
+      $unwind: '$brandName',
+    },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    {
+      $unwind: '$category',
+    },
+
+    // { $match:  },
+    // Get car owner details (userDetails)
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'agencyId',
+        foreignField: '_id',
+        as: 'userDetails',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              email: 1,
+              location: 1,
+              image: 1,
+              description: 1,
+            },
+          },
+        ],
+      },
+    },
+
     {
       $addFields: {
         averageRating: {

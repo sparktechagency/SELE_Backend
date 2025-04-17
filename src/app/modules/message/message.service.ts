@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
-import { IMessage, MessageModel } from './message.interface';
+import { IMessage } from './message.interface';
 import { Message } from './message.model';
 import ApiError from '../../../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { sendNotifications } from '../../../helpers/notificationSender';
+import { JwtPayload } from 'jsonwebtoken';
+import { Chat } from '../chat/chat.model';
 
 const sendMessageToDB = async (payload: IMessage) => {
   const response = await Message.create(payload);
@@ -30,22 +32,80 @@ const sendMessageToDB = async (payload: IMessage) => {
   return newMessage;
 };
 
-const getMessageFromDB = async (id: string, query: Record<string, any>) => {
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+// const getMessageFromDB = async (chatId: string, user: JwtPayload) => {
+//   if (!mongoose.Types.ObjectId.isValid(chatId)) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid chat ID');
+//   }
+//   console.log(chatId);
+//   const chat = await Chat.findById(chatId);
+//   console.log(chat);
+//   // @ts-ignore
+//   const isParticipant = chat?.participants[1];
+//   if (!isParticipant) {
+//     throw new ApiError(
+//       StatusCodes.FORBIDDEN,
+//       'You are not a participant in this chat'
+//     );
+//   }
+
+//   // 3. Find all messages for this chatId
+//   const messages = await Message.find({ chatId })
+//     .populate({
+//       path: 'sender',
+//       select: 'name image email',
+//     })
+//     .sort({ createdAt: -1 })
+//     .lean()
+//     .exec();
+
+//   return messages;
+// };
+
+
+// todo: work not complete
+const getMessageFromDB = async (chatId: string, user: JwtPayload) => {
+  console.log('chatId', chatId);
+
+  // 1. Validate chatId
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid chat ID');
   }
-  const baseQuery = Message.find({ chatId: id });
-  const result = new QueryBuilder(baseQuery, query);
-  const messages = await result.modelQuery.populate(
-    'sender',
-    'name avatar image'
-  );
-  const pagination = await result.getPaginationInfo();
 
-  if (!messages) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Message not found');
+const query = Message.find({ chatId: chatId?._conditions?.chatId })
+
+  const chat = await Chat.findById(query).populate("sender").lean().exec();
+  console.log("chat", chat?.participants);
+  // console.log('Chat document:', chat);
+  // if (!chat?.participants || !Array.isArray(chat.participants)) {
+  //   console.error('Invalid participants format:', chat?.participants);
+  //   throw new ApiError(
+  //     StatusCodes.INTERNAL_SERVER_ERROR,
+  //     'Invalid chat format'
+  //   );
+  // }
+
+  console.log('Participants:', chat?.participants);
+  console.log('Current user ID:', user.userId);
+
+  const isParticipant = chat?.participants.some(
+    participant => participant.toString() === user.userId
+  );
+
+  if (!isParticipant) {
+    throw new ApiError(
+      StatusCodes.FORBIDDEN,
+      'You are not a participant in this chat'
+    );
   }
-  return { pagination, messages };
+
+  // 4. Find messages
+  const messages = await Message.find({ chatId })
+    .populate('sender', 'name image email')
+    .sort({ createdAt: -1 })
+    .lean()
+    .exec();
+
+  return messages;
 };
 
 export const MessageServices = { sendMessageToDB, getMessageFromDB };

@@ -24,6 +24,18 @@ const apiRoutes = [
     route: AuthRoutes,
   },
   {
+    path: '/about',
+    route: AboutRoutes,
+  },
+  {
+    path: '/terms-and-conditions',
+    route: termsAndConditionsRoutes,
+  },
+  {
+    path: '/privacy-and-policy',
+    route: PrivacyAndPolicyRoutes,
+  },
+  {
     path: '/',
     route: BrandRoutes,
   },
@@ -43,18 +55,7 @@ const apiRoutes = [
     path: '/message',
     route: MessageRoutes,
   },
-  {
-    path: '/about',
-    route: AboutRoutes,
-  },
-  {
-    path: '/terms-and-conditions',
-    route: termsAndConditionsRoutes,
-  },
-  {
-    path: '/privacy-and-policy',
-    route: PrivacyAndPolicyRoutes,
-  },
+
   {
     path: '/category',
     route: CategoryRoutes,

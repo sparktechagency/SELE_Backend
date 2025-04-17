@@ -5,57 +5,54 @@ import { Chat } from './chat.model';
 import mongoose from 'mongoose';
 import { JwtPayload } from 'jsonwebtoken';
 
-const createChatToDB = async (payload: IChat) => {
-  const isExistChat: IChat | null = await Chat.findOne({
-    participants: { $in: payload },
-  });
-  if (isExistChat) {
-    return isExistChat;
+const createChatToDB = async (payload: IChat, user: JwtPayload) => {
+  if (!payload.participants || !Array.isArray(payload.participants)) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Participants must be an array'
+    );
   }
-  const result = await Chat.create({ participants: payload });
-  if (!result) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create room');
+
+  const uniqueParticipants = [
+    ...new Set([...payload.participants, user.userId]),
+  ];
+
+  const objectIds = uniqueParticipants
+    .map(id => new mongoose.Types.ObjectId(id))
+    .sort((a, b) => a.toString().localeCompare(b.toString()));
+  const existingChat = await Chat.findOne()
+    .populate({
+      path: 'participants',
+      select: 'name email image _id',
+    })
+    .lean();
+  if (existingChat) {
+    return existingChat;
   }
-  return result;
+  const createdChat = await Chat.create({ participants: objectIds });
+
+  const populatedNewChat = await Chat.findById(createdChat._id)
+    .populate({
+      path: 'participants',
+      select: 'name email image _id',
+    })
+    .lean();
+
+  return populatedNewChat;
 };
 
 const getChatFromDB = async (user: JwtPayload) => {
+  const userIdObj = new mongoose.Types.ObjectId(user.id);
   const chats = await Chat.find({
-    participants: { $in: [user.id] },
+    participants: { $in: [userIdObj] },
   })
     .populate({
       path: 'participants',
-      select: 'name image -_id',
-      match: {
-        _id: {
-          $ne: user.id,
-        },
-      },
+      select: 'name email image _id',
     })
     .lean()
     .exec();
-
-  const chatsWithLastMessage = await Promise.all(
-    chats.map(async( chat:any) => {
-        const {_id, participants} = chat;
-        const participant = participants[0];
-        // find the latest message from this chat
-        const lastMessage = await Chat.aggregate([
-          { $match: { _id: new mongoose.Types.ObjectId(_id) } },
-          { $unwind: '$messages' },
-          { $sort: { 'messages.createdAt': -1 } },
-          { $limit: 1 },
-          { $project: { 'messages': 1 } },      
-        ])
-      return {
-        _id,
-        ...participant,
-        lastMessage: lastMessage || null,
-      }
-    })
-  );
-
-  return chatsWithLastMessage;
+  return chats;
 };
 
 export const ChatServices = { createChatToDB, getChatFromDB };

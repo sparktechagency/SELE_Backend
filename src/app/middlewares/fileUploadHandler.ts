@@ -48,6 +48,9 @@ const fileUploadHandler = () => {
         case "messageImage":
           uploadDir = path.join(baseUploadDir, "messageImage")
           break
+          case "profileImage":
+            uploadDir = path.join(baseUploadDir, "profileImage")
+            break
         default:
           throw new ApiError(StatusCodes.BAD_REQUEST, 'File is not supported');
       }
@@ -123,7 +126,7 @@ const fileUploadHandler = () => {
     { name: 'carImage', maxCount: 2 },
     { name: "drivingLicense", maxCount: 2 },
     { name: "yourID", maxCount: 2 },
-    { name: "messageImage", maxCount: 1 }
+    { name: "messageImage", maxCount: 10 }
   ]);
   return upload;
 };
