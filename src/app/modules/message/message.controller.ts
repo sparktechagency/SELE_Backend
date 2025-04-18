@@ -35,32 +35,19 @@ const sendMessage = catchAsync(
 );
 
 const getMessage = catchAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result = await MessageServices.getMessageFromDB(
-      id,
-      // req.user,
-      req.query
-    );
-  
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: 'Messages fetched successfully',
-      data: result,
-    });
+  const { id } = req.params;
+  const result = await MessageServices.getMessageFromDB(
+    id,
+    req.user,
+    req.query
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Messages fetched successfully',
+    data: result,
   });
-  
-
-// const getMessage = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-//     const messages = await MessageServices.getMessageFromDB(req.params.id, req.query);
-
-//     sendResponse(res, {
-//         success: true,
-//         statusCode: StatusCodes.OK,
-//         message: "Messages fetched successfully",
-//         data: messages,
-//     });
-// });
+});
 
 export const MessageController = { sendMessage, getMessage };
-//

@@ -12,7 +12,7 @@ export default {
     jwt_secret: process.env.JWT_SECRET,
     jwt_expire_in: process.env.JWT_EXPIRE_IN,
     jwt_refresh: process.env.JWT_SECRET_REFRESH,
-    jwt_refresh_expire_in: process.env.JWT_REFRESH_EXPIRE_IN
+    jwt_refresh_expire_in: process.env.JWT_REFRESH_EXPIRE_IN,
   },
   email: {
     from: process.env.EMAIL_FROM,
@@ -25,5 +25,10 @@ export default {
     email: process.env.SUPER_ADMIN_EMAIL,
     password: process.env.SUPER_ADMIN_PASSWORD,
     confirmPassword: process.env.SUPER_ADMIN_CONFIRM_PASSWORD,
+  },
+  stripe: {
+    stripeSecretKey: process.env.STRIPE_API_SECRET,
+    webhookSecret: process.env.WEBHOOK_SECRET,
+    paymentSuccess: process.env.STRIPE_PAYMENT_SUCCESS_LINK,
   },
 };

@@ -65,9 +65,9 @@ const apiRoutes = [
     route: RatingRoutes,
   },
   {
-    path:"/",
-    route:NotificationRoute
-  }
+    path: '/',
+    route: NotificationRoute,
+  },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

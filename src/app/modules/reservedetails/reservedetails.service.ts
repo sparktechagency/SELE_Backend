@@ -166,6 +166,32 @@ const getAllReserveData = async (
   };
 };
 
+const getReceivedAInProgressAndAssignedReserveData = async (
+  options: IPaginationOptions,
+  userId: string,
+  role?: string
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+  const allowedStatuses = ['Request', 'InProgress', 'Assigned'];
+  const filter: any = {
+    progressStatus: { $in: allowedStatuses },
+  };
+  const result = await ReserveDetailsModel.find(filter)
+    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+    .skip(skip)
+    .limit(limit);
+  const total = await ReserveDetailsModel.countDocuments(filter);
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
 const getSingleReserveData = async (id: string) => {
   const data = await ReserveDetailsModel.findById(id);
   if (!data) {
@@ -215,4 +241,6 @@ export const ReserveDetailsServices = {
   getSingleReserveData,
   updateReserveDetails,
   deleteReserveDetails,
+  //
+  getReceivedAInProgressAndAssignedReserveData,
 };

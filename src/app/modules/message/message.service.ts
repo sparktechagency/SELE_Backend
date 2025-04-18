@@ -5,6 +5,7 @@ import ApiError from '../../../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { sendNotifications } from '../../../helpers/notificationSender';
+import { JwtPayload } from 'jsonwebtoken';
 
 const sendMessageToDB = async (payload: IMessage) => {
   const response = await Message.create(payload);
@@ -29,7 +30,7 @@ const sendMessageToDB = async (payload: IMessage) => {
 
   return newMessage;
 };
-const getMessageFromDB = async (id: string, query: Record<string, any>) => {
+const getMessageFromDB = async (id: string,user:JwtPayload, query: Record<string, any>) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid chat ID');
   }
@@ -43,7 +44,7 @@ const getMessageFromDB = async (id: string, query: Record<string, any>) => {
   if (!messages) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Message not found');
   }
-  return { pagination, messages };
+  return { pagination, messages, user };
 };
 
 export const MessageServices = { sendMessageToDB, getMessageFromDB };
