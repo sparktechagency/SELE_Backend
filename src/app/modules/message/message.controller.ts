@@ -38,8 +38,8 @@ const getMessage = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await MessageServices.getMessageFromDB(
       id,
-      req.user,
-    //   req.query
+      // req.user,
+      req.query
     );
   
     sendResponse(res, {
