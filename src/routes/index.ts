@@ -12,6 +12,7 @@ import { PrivacyAndPolicyRoutes } from '../app/modules/privacyandpolicy/privacya
 import { CategoryRoutes } from '../app/modules/category/category.route';
 import { RatingRoutes } from '../app/modules/reting/reting.route';
 import { NotificationRoute } from '../app/modules/notification/notification.route';
+import { paymentVerificationRoutes } from '../app/modules/paymentVerification/paymentVerification.routes';
 const router = express.Router();
 
 const apiRoutes = [
@@ -68,6 +69,10 @@ const apiRoutes = [
     path: '/',
     route: NotificationRoute,
   },
+  {
+    path: '/process-car-payment',
+    route: paymentVerificationRoutes,
+  }
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

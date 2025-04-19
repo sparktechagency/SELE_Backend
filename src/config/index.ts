@@ -27,7 +27,7 @@ export default {
     confirmPassword: process.env.SUPER_ADMIN_CONFIRM_PASSWORD,
   },
   stripe: {
-    stripeSecretKey: process.env.STRIPE_API_SECRET,
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.WEBHOOK_SECRET,
     paymentSuccess: process.env.STRIPE_PAYMENT_SUCCESS_LINK,
   },

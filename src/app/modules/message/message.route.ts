@@ -13,30 +13,8 @@ router.post(
   fileUploadHandler(),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Check if the car image is uploaded
-      if (
-        !req.files ||
-        !(req.files as { [fieldname: string]: Express.Multer.File[] })[
-          'messageImage'
-        ]
-      ) {
-        return sendResponse(res, {
-          statusCode: 400,
-          success: false,
-          message: 'No messageImage image uploaded',
-        });
-      }
-
       // @ts-ignore
       const messageImage = getMultipleFilesPath(req.files, 'messageImage');
-
-      if (!messageImage) {
-        return sendResponse(res, {
-          statusCode: 400,
-          success: false,
-          message: 'Message image path is not defined',
-        });
-      }
 
       // Map the car data with the correct fields
       req.body = {

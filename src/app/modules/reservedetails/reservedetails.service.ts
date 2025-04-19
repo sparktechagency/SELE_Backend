@@ -178,9 +178,20 @@ const getReceivedAInProgressAndAssignedReserveData = async (
     progressStatus: { $in: allowedStatuses },
   };
   const result = await ReserveDetailsModel.find(filter)
+    .populate({
+      path: 'carId',
+      populate: [
+        { path: 'brandName' },
+        { path: 'category' },
+        { path: 'agencyId' }
+      ]
+    })
+    .populate('userId')
     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
     .skip(skip)
     .limit(limit);
+
+
   const total = await ReserveDetailsModel.countDocuments(filter);
   return {
     meta: {
@@ -191,6 +202,45 @@ const getReceivedAInProgressAndAssignedReserveData = async (
     data: result,
   };
 };
+
+
+const getReserveHistory = async (
+  options: IPaginationOptions,
+  userId: string,
+  role?: string
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+  const allowedStatuses = ['Cancelled', 'Delivered'];
+  const filter: any = {
+    progressStatus: { $in: allowedStatuses },
+  };
+  const result = await ReserveDetailsModel.find(filter)
+    .populate({
+      path: 'carId',
+      populate: [
+        { path: 'brandName' },
+        { path: 'category' },
+        { path: 'agencyId' }
+      ]
+    })
+    .populate('userId')
+    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+    .skip(skip)
+    .limit(limit);
+
+
+  const total = await ReserveDetailsModel.countDocuments(filter);
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
 
 const getSingleReserveData = async (id: string) => {
   const data = await ReserveDetailsModel.findById(id);
@@ -243,4 +293,5 @@ export const ReserveDetailsServices = {
   deleteReserveDetails,
   //
   getReceivedAInProgressAndAssignedReserveData,
+  getReserveHistory
 };

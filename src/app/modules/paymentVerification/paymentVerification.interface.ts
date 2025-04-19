@@ -1,8 +1,13 @@
+import { Types } from 'mongoose';
+
 export interface IPaymentVerification {
-    userEmail: string;
-    transactionId: string;
-    amount: number;
-    currency: string;
-    status: "successful" | "failed";
-    // verifiedAt: Date;
+  userId: Types.ObjectId;
+  transactionId?: string;
+  amount: number;
+  currency?: string;
+  status?: 'successful' | 'failed'|'pending';
+  checkoutSessionId?: string;
+  paymentUrl?: string;
+  trxId?: string;
+  carId:Types.ObjectId;
 }

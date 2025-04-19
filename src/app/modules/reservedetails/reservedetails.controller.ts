@@ -56,22 +56,101 @@ const getSpecificReserveDetails = catchAsync(
       sortOrder: (req.query.sortOrder as string) || 'desc',
     };
 
-    const result =
+    const data =
       await ReserveDetailsServices.getReceivedAInProgressAndAssignedReserveData(
         {
           page: options.page,
           limit: options.limit,
           sortBy: options.sortBy,
-          sortOrder: options.sortOrder as 'asc' | 'desc'
+          sortOrder: options.sortOrder as 'asc' | 'desc',
         },
         req.user.id
       );
 
+    const processedData = data.data.map((reservation: any) => {
+      console.log('reservation', reservation);
+      const startDate = new Date(reservation.startDate);
+      const endDate = new Date(reservation.endDate);
+
+      // Calculate number of days
+      const timeDiff = endDate.getTime() - startDate.getTime();
+      const days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+
+      // Calculate total cost
+      const dailyPrice = reservation.carId.price;
+      const rentalCost = dailyPrice * days;
+      const appCharge = 10;
+      const totalCost = rentalCost + appCharge;
+
+      return {
+        ...reservation.toObject(),
+        Day: days,
+        price: dailyPrice,
+        appCharge: appCharge,
+        finalTotal: totalCost,
+      };
+    });
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Successfully retrieved reserve details',
-      data: result,
+      message: 'Successfully retrieved specific reserve details',
+      data: processedData,
+      // @ts-ignore
+      pagination: data.meta,
+    });
+  }
+);
+
+const getSpecificReserveHistory = catchAsync(
+  async (req: Request, res: Response) => {
+    const options = {
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      sortBy: (req.query.sortBy as string) || 'createdAt',
+      sortOrder: (req.query.sortOrder as string) || 'desc',
+    };
+
+    const data =
+      await ReserveDetailsServices.getReserveHistory(
+        {
+          page: options.page,
+          limit: options.limit,
+          sortBy: options.sortBy,
+          sortOrder: options.sortOrder as 'asc' | 'desc',
+        },
+        req.user.id
+      );
+
+    const processedData = data.data.map((reservation: any) => {
+      console.log('reservation', reservation);
+      const startDate = new Date(reservation.startDate);
+      const endDate = new Date(reservation.endDate);
+
+      // Calculate number of days
+      const timeDiff = endDate.getTime() - startDate.getTime();
+      const days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+
+      // Calculate total cost
+      const dailyPrice = reservation.carId.price;
+      const rentalCost = dailyPrice * days;
+      const appCharge = 10;
+      const totalCost = rentalCost + appCharge;
+
+      return {
+        ...reservation.toObject(),
+        Day: days,
+        price: dailyPrice,
+        appCharge: appCharge,
+        finalTotal: totalCost,
+      };
+    });
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Successfully retrieved specific reserve details',
+      data: processedData,
+      // @ts-ignore
+      pagination: data.meta,
     });
   }
 );
@@ -132,5 +211,6 @@ export const ReserveDetailsController = {
   getSingleReserveDetails,
   updateReserveDetails,
   deleteReserveDetails,
-  getSpecificReserveDetails
+  getSpecificReserveDetails,
+  getSpecificReserveHistory
 };
