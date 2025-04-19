@@ -6,7 +6,6 @@ import { StatusCodes } from 'http-status-codes';
 
 const createChat = catchAsync(async (req: Request, res: Response) => {
     // const { participant } = req.body
-    // console.log("req.user",req.user);
     // const payload = [req.user?.id, participant]
     const otherUserId = req.body.participants; // string
     const loggedInUserId = req.user?.id; // from JWT

@@ -16,7 +16,6 @@ router
     fileUploadHandler(),
     (req: Request, res: Response, next: NextFunction) => {
       if (req.body.data) {
-        console.log(req.body?.data);
         
         // Parse the data from the request body
         const parsedData = JSON.parse(req.body.data);

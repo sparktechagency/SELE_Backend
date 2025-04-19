@@ -68,7 +68,6 @@ const getSpecificReserveDetails = catchAsync(
       );
 
     const processedData = data.data.map((reservation: any) => {
-      console.log('reservation', reservation);
       const startDate = new Date(reservation.startDate);
       const endDate = new Date(reservation.endDate);
 
@@ -122,7 +121,6 @@ const getSpecificReserveHistory = catchAsync(
       );
 
     const processedData = data.data.map((reservation: any) => {
-      console.log('reservation', reservation);
       const startDate = new Date(reservation.startDate);
       const endDate = new Date(reservation.endDate);
 

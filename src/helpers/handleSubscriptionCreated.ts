@@ -27,7 +27,6 @@ export const handleSubscriptionCreated = async (
     const fullSubscription = await stripe.subscriptions.retrieve(
       subscription.id
     );
-    console.log('Full Subscription:', fullSubscription);
     // Get productId from subscription
     const productId = fullSubscription.items.data[0]?.price?.product as string;
     if (!productId) {

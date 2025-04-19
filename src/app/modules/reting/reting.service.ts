@@ -25,7 +25,6 @@ const getAllRatingFromDB = async (
     paginationHelper.calculatePagination(paginationOptions);
 
   // Validate carId format
-  console.log(carId);
   if (!Types.ObjectId.isValid(carId)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid car ID format");
   }

@@ -51,7 +51,6 @@ const createOneTimePackage = async (req: Request, res: Response) => {
         };
       })
     );
-    console.log("lineItems==============>>>", lineItems);
     const session = await stripe?.checkout?.sessions?.create({
       payment_method_types: ['card'],
       line_items: lineItems.map(item => ({
@@ -97,7 +96,6 @@ const createOneTimePackage = async (req: Request, res: Response) => {
         message: 'Failed to create payment.',
       });
     }
-    console.log('confirmPayment===============>>>>', confirmPayment);
     return res.status(StatusCodes.OK).json({
       success: true,
       message: 'Checkout session created successfully.',
