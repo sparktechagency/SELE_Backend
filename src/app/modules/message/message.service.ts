@@ -13,7 +13,6 @@ const sendMessageToDB = async (payload: IMessage) => {
     'sender',
     'name, image, name'
   );
-  console.log(response);
   //@ts-ignore
   const io = global.io;
   if (io) {
@@ -30,12 +29,21 @@ const sendMessageToDB = async (payload: IMessage) => {
 
   return newMessage;
 };
-const getMessageFromDB = async (id: string,user:JwtPayload, query: Record<string, any>) => {
+const getMessageFromDB = async (
+  id: string,
+  user: JwtPayload,
+  query: Record<string, any>
+) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid chat ID');
   }
   const baseQuery = Message.find({ chatId: id });
-  const result = new QueryBuilder(baseQuery, query);
+  const result = new QueryBuilder(baseQuery, query)
+    .search(['content'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
   const messages = await result.modelQuery.populate({
     path: 'sender',
     select: 'name image email',
