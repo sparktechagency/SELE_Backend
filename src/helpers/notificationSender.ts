@@ -10,6 +10,5 @@ export const sendNotifications = async (
   if (socketIo) {
     socketIo.emit(`get-notification::${data?.userId}`, result);
   }
-
   return result;
 };

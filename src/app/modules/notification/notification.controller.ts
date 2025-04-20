@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import { NotificationServices } from './notification.service';
 import sendResponse from '../../../shared/sendResponse';
-import ApiError from '../../../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 const createNotification = catchAsync(async (req: Request, res: Response) => {
   const notification = req.body;

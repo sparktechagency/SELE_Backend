@@ -16,7 +16,7 @@ const sendMessageToDB = async (payload: IMessage) => {
   //@ts-ignore
   const io = global.io;
   if (io) {
-    io.to(payload.chatId.toString()).emit('newMessage', newMessage);
+    io.emit(`get-message::${payload.chatId}`, newMessage);
   }
   const notificationPayload = {
     userId: newMessage?._id,

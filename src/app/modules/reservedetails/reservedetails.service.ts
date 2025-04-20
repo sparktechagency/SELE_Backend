@@ -267,6 +267,7 @@ const updateReserveDetails = async (id: string, progressStatus: string) => {
     title: 'Reserve Details In Progress',
     message: `Your reserve details are in ${progressStatus}`,
     type: 'reserve_details',
+
   };
 
   await sendNotifications(notificationPayload as any);

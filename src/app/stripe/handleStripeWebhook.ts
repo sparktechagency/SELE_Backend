@@ -48,7 +48,6 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
           await payment.save();
         }
         break;
-        
       default:
         console.log(`unhandled event type: ${eventType}`);
     }

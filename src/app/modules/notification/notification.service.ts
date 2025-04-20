@@ -51,7 +51,7 @@ const getAllNotificationsIntoDB = async (options: IPaginationOptions) => {
 
   // Fetch the notifications with pagination
   const result = await Notification.find()
-    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 }) // Dynamic sort field and order
+    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
     .skip(skip)
     .limit(limit);
 

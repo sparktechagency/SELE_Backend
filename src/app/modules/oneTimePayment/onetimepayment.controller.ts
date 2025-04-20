@@ -59,7 +59,7 @@ const createOneTimePackage = async (req: Request, res: Response) => {
       })),
       mode: 'payment',
       success_url: 'http://success:6009/payment/success',
-      cancel_url: 'http://139.59.0.25:6009/payment/cancel',
+      cancel_url: 'http://success:6009/payment/cancel',
     });
 
     // Stripe returns amount_total in cents
