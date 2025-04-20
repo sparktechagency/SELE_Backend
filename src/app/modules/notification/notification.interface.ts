@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export interface INotification {
     userId: string;
     title: string;
@@ -5,6 +7,8 @@ export interface INotification {
     isRead: boolean;
     createdAt?: Date;
     filePath?:"conversion" | "reservation" | "allOrder"
+    reserVationId?:Types.ObjectId
+    conversionId?:Types.ObjectId
 }
 
 
