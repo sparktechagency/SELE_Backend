@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { handleSubscriptionCreated } from '../../helpers/handleSubscriptionCreated';
 import { paymentVerificationModel } from '../modules/paymentVerification/paymentVerification.model';
 import { ReserveDetailsModel } from '../modules/reservedetails/reservedetails.model';
+import { handleAccountConnectEvent } from '../../helpers/handleAccountConnectEvent';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
   let event: Stripe.Event | undefined;
@@ -34,6 +35,10 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   const eventType = event.type;
   try {
     switch (eventType) {
+      case 'account.updated':
+        await handleAccountConnectEvent(data as Stripe.Account);
+        break;
+
       case 'customer.subscription.created':
         await handleSubscriptionCreated(data as Stripe.Subscription);
         break;
