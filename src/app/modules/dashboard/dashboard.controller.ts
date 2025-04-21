@@ -8,7 +8,7 @@ import { Request, Response } from 'express';
 const getDashboardStatistics = catchAsync(
   async (req: Request, res: Response) => {
     const totalData = await DashboardService.dashboardStatisticsIntoDB();
-    console.log(totalData);
+
     if (!totalData) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to get data');
     }

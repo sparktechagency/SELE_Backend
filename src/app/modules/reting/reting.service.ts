@@ -42,9 +42,6 @@ const getAllRatingFromDB = async (
     Rating.countDocuments(query)
   ]);
 
-  // console.log("Raw query:", query);
-  // console.log("Found ratings:", result.length);
-  // console.log("Total count:", total);
 
   return {
     meta: { total, page, limit },

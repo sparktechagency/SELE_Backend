@@ -12,7 +12,6 @@ export const handleAccountConnectEvent = async (data: Stripe.Account) => {
   }
   if (data.charges_enabled) {
     const loginLink = await stripe.accounts.createLoginLink(data.id);
-    console.log('Login link: ', loginLink);
     // save stripe account information to the user record
     await User.findByIdAndUpdate(
       { _id: existingUser?._id },

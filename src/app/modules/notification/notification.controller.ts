@@ -6,7 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 const createNotification = catchAsync(async (req: Request, res: Response) => {
   const notification = req.body;
   const result = await NotificationServices.createNotification(notification);
-  console.log('result', result);
+
   sendResponse(res, {
     statusCode: 201,
     success: true,
@@ -32,11 +32,7 @@ const getNotificationsByUserId = catchAsync(
 
 const updateNotification = catchAsync(async (req: Request, res: Response) => {
   const { notificationId } = req.params;
-  const userId = req.user?.id; // Use _id instead of id if using Mongoose
-
-  console.log(
-    `Attempting to update notification ${notificationId} for user ${userId}`
-  ); // Debug log
+  const userId = req.user?.id;
 
   const result = await NotificationServices.updateNotification(
     notificationId,
