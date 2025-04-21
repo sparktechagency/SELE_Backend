@@ -8,7 +8,7 @@ export const sendNotifications = async (
   //@ts-ignore
   const socketIo = global.io;
   if (socketIo) {
-    socketIo.emit(`get-reservation::${data?.userId}`, result);
+    socketIo.emit(`get-notification::${data?.userId}`, result);
   }
   return result;
 };

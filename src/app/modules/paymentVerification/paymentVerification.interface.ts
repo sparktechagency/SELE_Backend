@@ -10,4 +10,5 @@ export interface IPaymentVerification {
   paymentUrl?: string;
   trxId?: string;
   carId:Types.ObjectId;
+  reserveId:Types.ObjectId;
 }

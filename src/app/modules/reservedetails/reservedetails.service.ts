@@ -21,7 +21,7 @@ const createReserveDetails = async (payload: IReserveDetails, user: string) => {
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
- 
+
   const notificationPayload = {
     // @ts-ignore
     userId: reserveData?._id,
@@ -184,14 +184,13 @@ const getReceivedAInProgressAndAssignedReserveData = async (
       populate: [
         { path: 'brandName' },
         { path: 'category' },
-        { path: 'agencyId' }
-      ]
+        { path: 'agencyId' },
+      ],
     })
     .populate('userId')
     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
     .skip(skip)
     .limit(limit);
-
 
   const total = await ReserveDetailsModel.countDocuments(filter);
   return {
@@ -203,7 +202,6 @@ const getReceivedAInProgressAndAssignedReserveData = async (
     data: result,
   };
 };
-
 
 const getReserveHistory = async (
   options: IPaginationOptions,
@@ -222,14 +220,13 @@ const getReserveHistory = async (
       populate: [
         { path: 'brandName' },
         { path: 'category' },
-        { path: 'agencyId' }
-      ]
+        { path: 'agencyId' },
+      ],
     })
     .populate('userId')
     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
     .skip(skip)
     .limit(limit);
-
 
   const total = await ReserveDetailsModel.countDocuments(filter);
   return {
@@ -242,9 +239,19 @@ const getReserveHistory = async (
   };
 };
 
-
 const getSingleReserveData = async (id: string) => {
-  const data = await ReserveDetailsModel.findById(id);
+  const data = await ReserveDetailsModel.findById(id).populate([
+    {
+      path: 'carId',
+      populate: [
+        { path: 'brandName' },
+        { path: 'category' },
+        { path: 'agencyId' },
+      ],
+    },
+    { path: 'userId' },
+  ]);
+
   if (!data) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'No Reserve Data found');
   }
@@ -268,8 +275,8 @@ const updateReserveDetails = async (id: string, progressStatus: string) => {
     title: 'Reserve Details In Progress',
     message: `Your reserve details are in ${progressStatus}`,
     type: 'reserve_details',
-    filePath: "reservation",
-    reserVationId: updatedData?._id,
+    filePath: 'reservation',
+    referenceId: updatedData?._id,
   };
 
   await sendNotifications(notificationPayload as any);
@@ -296,5 +303,5 @@ export const ReserveDetailsServices = {
   deleteReserveDetails,
   //
   getReceivedAInProgressAndAssignedReserveData,
-  getReserveHistory
+  getReserveHistory,
 };

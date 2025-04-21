@@ -63,11 +63,9 @@ export const handleSubscriptionCreated = async (
 
     // Retrieve user by email
     const user = await getUserByEmail(email);
-    console.log(user);
 
     return true;
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error);
-    // throw error;
   }
 };

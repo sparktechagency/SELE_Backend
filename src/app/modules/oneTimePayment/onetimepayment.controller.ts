@@ -14,6 +14,7 @@ const createOneTimePackage = async (req: Request, res: Response) => {
     streetAddress,
     postCode,
     orderMessage,
+    reservationId
   } = req.body;
 
   // Find the user by email

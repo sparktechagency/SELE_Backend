@@ -41,6 +41,11 @@ const PaymentVerificationSchema = new Schema<IPaymentVerification>(
       ref: 'Car',
       required: true,
     },
+    reserveId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Reservedetails',
+      required: true, 
+    }
   },
   { timestamps: true }
 );

@@ -7,8 +7,7 @@ const notificationSchema = new Schema<INotification>({
   message: { type: String, required: true },
   filePath: { type: String, enum: ['conversion', 'reservation', 'allOrder'] },
   isRead: { type: Boolean, default: false },
-  reserVationId: { type: Schema.Types.ObjectId, ref: 'Reservedetails' },
-  conversionId: { type: Schema.Types.ObjectId, ref: 'Message' },
+  referenceId: { type: Schema.Types.ObjectId },
 },{
     timestamps:true
 });

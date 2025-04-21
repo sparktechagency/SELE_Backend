@@ -10,4 +10,5 @@ export type IOneTimePayment = {
   carDetails: Types.ObjectId;
   checkoutSessionId: string;
   paymentUrl: string;
+  reservationId: Types.ObjectId;
 };

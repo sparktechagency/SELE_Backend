@@ -109,16 +109,15 @@ const getSpecificReserveHistory = catchAsync(
       sortOrder: (req.query.sortOrder as string) || 'desc',
     };
 
-    const data =
-      await ReserveDetailsServices.getReserveHistory(
-        {
-          page: options.page,
-          limit: options.limit,
-          sortBy: options.sortBy,
-          sortOrder: options.sortOrder as 'asc' | 'desc',
-        },
-        req.user.id
-      );
+    const data = await ReserveDetailsServices.getReserveHistory(
+      {
+        page: options.page,
+        limit: options.limit,
+        sortBy: options.sortBy,
+        sortOrder: options.sortOrder as 'asc' | 'desc',
+      },
+      req.user.id
+    );
 
     const processedData = data.data.map((reservation: any) => {
       const startDate = new Date(reservation.startDate);
@@ -156,9 +155,7 @@ const getSpecificReserveHistory = catchAsync(
 const getSingleReserveDetails = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const result = await (
-      await ReserveDetailsServices.getSingleReserveData(id)
-    ).populate('carId');
+    const result =  await ReserveDetailsServices.getSingleReserveData(id);
     sendResponse(res, {
       statusCode: 200,
       success: true,
@@ -210,5 +207,5 @@ export const ReserveDetailsController = {
   updateReserveDetails,
   deleteReserveDetails,
   getSpecificReserveDetails,
-  getSpecificReserveHistory
+  getSpecificReserveHistory,
 };

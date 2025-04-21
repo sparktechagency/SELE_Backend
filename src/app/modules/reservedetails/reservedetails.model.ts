@@ -6,6 +6,14 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
     type: Schema.Types.ObjectId,
     ref: 'Cars',
   },
+  brandName: {
+    type: Schema.Types.ObjectId,
+    ref: 'Brand', 
+  },
+  category: {
+    type: Schema.Types.ObjectId,
+    ref: 'Category', 
+  },
   startDate: {
     type: String,
     required: true,
@@ -37,6 +45,11 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
     ref: 'User',
     required: false,
   },
+  trxId:{
+    type: String,
+    default:null,
+    required: false,
+  }
 });
 
 export const ReserveDetailsModel = model<IReserveDetails>(

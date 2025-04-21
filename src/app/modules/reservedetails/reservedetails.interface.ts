@@ -11,4 +11,8 @@ export type IReserveDetails = {
   userId?: Types.ObjectId;
   orderId?: String;
   createdAt?: Date;
+  category?:Types.ObjectId;
+  brandName?:Types.ObjectId;
+  agencyId?:Types.ObjectId;
+  trxId?:string;
 };

@@ -6,6 +6,7 @@ import config from '../../config';
 import { Request, Response } from 'express';
 import { handleSubscriptionCreated } from '../../helpers/handleSubscriptionCreated';
 import { paymentVerificationModel } from '../modules/paymentVerification/paymentVerification.model';
+import { ReserveDetailsModel } from '../modules/reservedetails/reservedetails.model';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
   let event: Stripe.Event | undefined;
@@ -42,10 +43,19 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
         const payment = await paymentVerificationModel.findOne({
           checkoutSessionId: session.id,
         });
+
         if (payment) {
           payment.status = 'successful';
           payment.trxId = paymentIntentId?.toString();
           await payment.save();
+
+          // Update ReserveDetailsModel with trxId
+          await ReserveDetailsModel.findByIdAndUpdate(
+            payment.reserveId,
+            { trxId: paymentIntentId?.toString(), progressStatus: 'Assigned' },
+
+            { new: true }
+          );
         }
         break;
       default:

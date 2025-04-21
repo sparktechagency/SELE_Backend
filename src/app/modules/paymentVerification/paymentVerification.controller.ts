@@ -9,7 +9,7 @@ import ApiError from '../../../errors/ApiError';
 const createCarPaymentSession = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const userId = req.user.id;
-    const { amount, carId } = req.body;
+    const { amount, carId, reserveId } = req.body;
     const car = await CarsModel.findById(carId);
     if (!car) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');
@@ -31,7 +31,7 @@ const createCarPaymentSession = catchAsync(
       mode: 'payment',
       success_url: `http://localhost:3000/success`,
       cancel_url: `http://localhost:3000/cancel`,
-      metadata: { userId, carId },
+      metadata: { userId, carId, reserveId },
     });
 
     // Only save successful payments
@@ -45,6 +45,7 @@ const createCarPaymentSession = catchAsync(
       checkoutSessionId: session.id,
       paymentUrl: session.url || '',
       trxId: null,
+      reserveId
     });
     await payment.save();
     res.status(StatusCodes.OK).json({

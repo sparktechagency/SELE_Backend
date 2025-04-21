@@ -15,7 +15,8 @@ const oneTimePaymentSchema = new Schema<IOneTimePayment>(
     userEmail: { type: String, required: true },
     postCode: { type: String, required: true },
     checkoutSessionId: { type: String, required: true },
-    paymentUrl: { type: String, required: true }
+    paymentUrl: { type: String, required: true },
+    reservationId: { type: Schema.Types.ObjectId, ref: 'Reservedetails' },
   },
   { timestamps: true }
 );

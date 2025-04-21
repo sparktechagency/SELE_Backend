@@ -23,6 +23,8 @@ const sendMessageToDB = async (payload: IMessage) => {
     title: 'New Message',
     message: `You have a new message from ${(newMessage?.sender as any)?.name}`,
     type: 'Message Send',
+    filePath: 'conversion',
+    referenceId: newMessage?.chatId,
   };
 
   await sendNotifications(notificationPayload as any);

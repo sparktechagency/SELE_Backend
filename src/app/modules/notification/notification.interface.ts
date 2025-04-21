@@ -7,8 +7,7 @@ export interface INotification {
     isRead: boolean;
     createdAt?: Date;
     filePath?:"conversion" | "reservation" | "allOrder"
-    reserVationId?:Types.ObjectId
-    conversionId?:Types.ObjectId
+    referenceId?:Types.ObjectId
 }
 
 
