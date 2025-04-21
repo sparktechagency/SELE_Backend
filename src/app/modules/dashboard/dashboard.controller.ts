@@ -114,6 +114,18 @@ const deleteAgencyFromDB = catchAsync(async(req:Request, res:Response)=>{
   });
 })
 
+// total earning by month
+const totalEarningByMonth = catchAsync(async(req:Request, res:Response)=>{
+  const result = await DashboardService.totalEarningByMonthFromDB();
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Earning fetched successfully',
+    data: result,
+  });
+})
+
+
 export const DashboardController = {
   getDashboardStatistics,
   getRecentUserForDashboard,
@@ -123,5 +135,6 @@ export const DashboardController = {
   totalAgency,
   getSingleAgency,
   deleteAgencyFromDB,
-  totalEarning
+  totalEarning,
+  totalEarningByMonth
 };

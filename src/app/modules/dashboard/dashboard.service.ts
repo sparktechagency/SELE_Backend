@@ -84,42 +84,97 @@ const deleteUserFromDB = async (id: string) => {
   }
   return result;
 };
-
-// Todo: app charge and payment history
+// total earning
 const totalEarningFromDB = async () => {
-    const result = await ReserveDetailsModel.aggregate([
-      {
-        $match: {
-          progressStatus: { $in: ['Delivered', 'Assigned'] }
-        }
+  const result = await ReserveDetailsModel.aggregate([
+    {
+      $match: {
+        progressStatus: { $in: ['Delivered', 'Assigned'] },
       },
-      {
-        $group: {
-          _id: null,
-          totalAppCharge: { $sum: 10 },
-          totalOrders: { $sum: 1 }
-        }
+    },
+    {
+      $group: {
+        _id: null,
+        totalAppCharge: { $sum: 10 },
+        totalOrders: { $sum: 1 },
       },
-      {
-        $project: {
-          _id: 0,
-          totalAppCharge: 1,
-          totalOrders: 1
-        }
-      }
-    ]);
-  
-    if (!result.length) {
-      return {
-        totalAppCharge: 0,
-        totalOrders: 0
-      };
-    }
+    },
+    {
+      $project: {
+        _id: 0,
+        totalAppCharge: 1,
+        totalOrders: 1,
+      },
+    },
+  ]);
 
-    return result[0];
+  if (!result.length) {
+    return {
+      totalAppCharge: 0,
+      totalOrders: 0,
+    };
+  }
+
+  return result[0];
 };
 
+//  total earning by month
+const totalEarningByMonthFromDB = async () => {
+  const currentYear = new Date().getFullYear();
 
+  const result = await ReserveDetailsModel.aggregate([
+    {
+      $match: {
+        progressStatus: { $in: ['Delivered', 'Assigned'] },
+      },
+    },
+    {
+      $addFields: {
+        convertedDate: {
+          $dateFromString: {
+            dateString: '$startDate',
+            onError: null,
+          },
+        },
+      },
+    },
+    {
+      $match: {
+        convertedDate: {
+          $gte: new Date(`${currentYear}-01-01`),
+          $lte: new Date(`${currentYear}-12-31`),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: '$convertedDate' },
+        totalAppCharge: { $sum: 10 },
+        totalOrders: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+
+  // Create array for all 12 months
+  const monthlyData = Array.from({ length: 12 }, (_, index) => ({
+    month: index + 1,
+    monthName: new Date(2024, index).toLocaleString('en-US', { month: 'long' }),
+    totalAppCharge: 0,
+    totalOrders: 0,
+  }));
+
+  // Fill in actual data
+  result.forEach(item => {
+    const monthIndex = item._id - 1;
+    monthlyData[monthIndex].totalAppCharge = item.totalAppCharge;
+    monthlyData[monthIndex].totalOrders = item.totalOrders;
+  });
+
+  return monthlyData;
+};
 
 // agency
 const totalAgency = async (query: Record<string, unknown>) => {
@@ -195,5 +250,6 @@ export const DashboardService = {
   totalAgency,
   getSingleAgencyFromDB,
   deleteAgencyFromDB,
- totalEarningFromDB
+  totalEarningFromDB,
+  totalEarningByMonthFromDB,
 };

@@ -9,7 +9,8 @@ router.get("/recent-user",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getR
 router.get("/all-users",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getAllUsers)
 // total earning
 router.get("/total-earning",auth(USER_ROLES.SUPER_ADMIN), DashboardController.totalEarning)
-
+// total earning by month
+router.get("/total-earning-by-month",auth(USER_ROLES.SUPER_ADMIN), DashboardController.totalEarningByMonth)
 
 
 
