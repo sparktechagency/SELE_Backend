@@ -127,6 +127,30 @@ const totalAgency = async (query: Record<string, unknown>) => {
   };
 };
 
+// single agency
+const getSingleAgencyFromDB = async (id: string) => {
+  const result = await User.findById(id);
+  if (result?.role !== 'AGENCY') {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Agency not found');
+  }
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Agency not found');
+  }
+  return result;
+};
+
+// delete agency
+const deleteAgencyFromDB = async (id: string) => {
+  const result = await User.findByIdAndDelete(id);
+  if (result?.role !== 'AGENCY') {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Agency not found');
+  }
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Agency not found');
+  }
+  return result;
+};
+
 export const DashboardService = {
   dashboardStatisticsIntoDB,
   getRecentUserForDashboard,
@@ -134,4 +158,6 @@ export const DashboardService = {
   getSingleUserFromDB,
   deleteUserFromDB,
   totalAgency,
+  getSingleAgencyFromDB,
+  deleteAgencyFromDB,
 };

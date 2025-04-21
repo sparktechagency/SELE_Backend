@@ -15,4 +15,6 @@ router.delete("/delete-user/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardControll
 
 // total agency
 router.get("/total-agency",auth(USER_ROLES.SUPER_ADMIN), DashboardController.totalAgency)
+router.get("/single-agency/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getSingleAgency)
+router.delete("/delete-agency/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.deleteAgencyFromDB)
 export const DashboardRoutes = router

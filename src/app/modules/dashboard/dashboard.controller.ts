@@ -85,11 +85,34 @@ const totalAgency = catchAsync(async(req:Request, res:Response)=>{
   }); 
 })
 
+// single agency
+const getSingleAgency = catchAsync(async(req:Request, res:Response)=>{
+  const result = await DashboardService.getSingleAgencyFromDB(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Agency fetched successfully',
+    data: result,
+  });
+})
+// delete agency
+const deleteAgencyFromDB = catchAsync(async(req:Request, res:Response)=>{
+  const result = await DashboardService.deleteAgencyFromDB(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Agency deleted successfully',
+    data: result,
+  });
+})
+
 export const DashboardController = {
   getDashboardStatistics,
   getRecentUserForDashboard,
   getAllUsers,
   getSingleUser,
   deleteUserFromDB,
-  totalAgency
+  totalAgency,
+  getSingleAgency,
+  deleteAgencyFromDB
 };
