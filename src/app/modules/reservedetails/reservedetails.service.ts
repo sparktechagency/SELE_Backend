@@ -295,6 +295,76 @@ const deleteReserveDetails = async (id: string) => {
   return deletedData;
 };
 
+// agency statistics
+const getReserveStatistics = async () => {
+  // Get statistics for all order statuses with their counts and prices
+  const orderStats = await ReserveDetailsModel.aggregate([
+    {
+      $lookup: {
+        from: 'cars',
+        localField: 'carId',
+        foreignField: '_id',
+        as: 'carDetails'
+      }
+    },
+    {
+      $group: {
+        _id: '$progressStatus',
+        count: { $sum: 1 },
+        totalAmount: {
+          $sum: {
+            $multiply: [
+              { $arrayElemAt: ['$carDetails.price', 0] },
+              { $subtract: [
+                { $divide: [
+                  { $subtract: [
+                    { $toDate: '$endDate' },
+                    { $toDate: '$startDate' }
+                  ]},
+                  1000 * 60 * 60 * 24
+                ]},
+                0
+              ]}
+            ]
+          }
+        }
+      }
+    }
+  ]);
+
+  // Transform the results into the desired format
+  const statistics = orderStats.reduce((acc: any, stat) => {
+    acc[stat._id.toLowerCase() + 'Order'] = {
+      count: stat.count,
+      amount: stat.totalAmount.toFixed(2)
+    };
+    return acc;
+  }, {});
+
+  // Calculate total orders and amount
+  const totalStats = orderStats.reduce((acc, stat) => {
+    acc.count += stat.count;
+    acc.amount += stat.totalAmount;
+    return acc;
+  }, { count: 0, amount: 0 });
+
+  // Ensure requestOrder exists even if there are no requests
+  if (!statistics.requestOrder) {
+    statistics.requestOrder = {
+      count: 0,
+      amount: '0.00'
+    };
+  }
+
+  return {
+    totalOrder: {
+      count: totalStats.count,
+      amount: totalStats.amount.toFixed(2)
+    },
+    ...statistics
+  };
+};
+
 export const ReserveDetailsServices = {
   createReserveDetails,
   getAllReserveData,
@@ -304,4 +374,7 @@ export const ReserveDetailsServices = {
   //
   getReceivedAInProgressAndAssignedReserveData,
   getReserveHistory,
+
+  // statistics
+  getReserveStatistics,
 };

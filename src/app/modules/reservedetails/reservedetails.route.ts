@@ -63,6 +63,8 @@ router.get(
   auth(USER_ROLES.USER, USER_ROLES.AGENCY),
   ReserveDetailsController.getSpecificReserveDetails
 );
+// statistics
+router.get("/statistics",auth(USER_ROLES.AGENCY),ReserveDetailsController.getReserveStatistics)
 
 // history
 router.get("/history",auth(USER_ROLES.USER, USER_ROLES.AGENCY),ReserveDetailsController.getSpecificReserveHistory)

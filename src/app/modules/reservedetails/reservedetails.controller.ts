@@ -200,6 +200,18 @@ const deleteReserveDetails = catchAsync(async (req: Request, res: Response) => {
     data: deleteData,
   });
 });
+
+// statistics
+const getReserveStatistics = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReserveDetailsServices.getReserveStatistics();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Successfully Retrieve Statistics',
+    data: result,
+  });
+});
+
 export const ReserveDetailsController = {
   createReserveDetails,
   getAllReserveDetails,
@@ -208,4 +220,5 @@ export const ReserveDetailsController = {
   deleteReserveDetails,
   getSpecificReserveDetails,
   getSpecificReserveHistory,
+  getReserveStatistics
 };

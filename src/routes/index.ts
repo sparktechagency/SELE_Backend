@@ -13,6 +13,7 @@ import { CategoryRoutes } from '../app/modules/category/category.route';
 import { RatingRoutes } from '../app/modules/reting/reting.route';
 import { NotificationRoute } from '../app/modules/notification/notification.route';
 import { paymentVerificationRoutes } from '../app/modules/paymentVerification/paymentVerification.routes';
+import { DashboardRoutes } from '../app/modules/dashboard/dashboard.routes';
 const router = express.Router();
 
 const apiRoutes = [
@@ -72,6 +73,10 @@ const apiRoutes = [
   {
     path: '/process-car-payment',
     route: paymentVerificationRoutes,
+  },
+  {
+    path: '/',
+    route: DashboardRoutes,
   }
 ];
 
