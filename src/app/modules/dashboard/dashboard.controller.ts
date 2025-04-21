@@ -48,8 +48,48 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+// get single user
+
+const getSingleUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await DashboardService.getSingleUserFromDB(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User fetched successfully',
+    data: result,
+  });
+});
+
+// delete user 
+const deleteUserFromDB = catchAsync(async(req:Request, res:Response)=>{
+  const result = await DashboardService.deleteUserFromDB(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User deleted successfully',
+    data: result,
+  });
+})
+
+// Todo: app charge and payment history
+
+// agency
+const totalAgency = catchAsync(async(req:Request, res:Response)=>{
+  const result = await DashboardService.totalAgency(req.query);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Agency fetched successfully',
+    data: result.data,
+  }); 
+})
+
 export const DashboardController = {
   getDashboardStatistics,
   getRecentUserForDashboard,
   getAllUsers,
+  getSingleUser,
+  deleteUserFromDB,
+  totalAgency
 };

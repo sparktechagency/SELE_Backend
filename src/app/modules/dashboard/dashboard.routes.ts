@@ -8,4 +8,11 @@ router.get("/dashboard-statistics",auth(USER_ROLES.SUPER_ADMIN), DashboardContro
 router.get("/recent-user",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getRecentUserForDashboard)
 router.get("/all-users",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getAllUsers)
 
+// get single user
+router.get("/single-user/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getSingleUser)
+router.delete("/delete-user/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.deleteUserFromDB)
+
+
+// total agency
+router.get("/total-agency",auth(USER_ROLES.SUPER_ADMIN), DashboardController.totalAgency)
 export const DashboardRoutes = router

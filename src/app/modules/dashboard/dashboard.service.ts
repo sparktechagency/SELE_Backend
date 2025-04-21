@@ -27,49 +27,111 @@ const getRecentUserForDashboard = async () => {
 
 // get all users
 const getAllUsers = async (query: Record<string, unknown>) => {
-    const { year, ...remainingQuery } = query;
-    
-    let userQuery = User.find({ role: 'USER' });
-    
-    // Add year filter if provided
-    if (year) {
-      const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
-      const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
-      
-      userQuery = userQuery.find({
-        createdAt: {
-          $gte: startDate,
-          $lte: endDate
-        }
-      });
-    }
-  
-    const userBuilder = new QueryBuilder(userQuery, remainingQuery)
-      .search(['name', 'email', 'location'])
-      .filter()
-      .sort()
-      .paginate()
-      .fields();
-  
-    const result = await userBuilder.modelQuery;
-    const paginationInfo = await userBuilder.getPaginationInfo();
-  
-    if(!result){
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Users not found');
-    }
-  
-    return {
-      success: true,
-      message: "Users fetched successfully",
-      data: {
-        meta: paginationInfo,
-        data: result,
-      }
-    };
+  const { year, ...remainingQuery } = query;
+
+  let userQuery = User.find({ role: 'USER' });
+
+  // Add year filter if provided
+  if (year) {
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    userQuery = userQuery.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
+  }
+
+  const userBuilder = new QueryBuilder(userQuery, remainingQuery)
+    .search(['name', 'email', 'location'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await userBuilder.modelQuery;
+  const paginationInfo = await userBuilder.getPaginationInfo();
+
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Users not found');
+  }
+
+  return {
+    data: {
+      meta: paginationInfo,
+      data: result,
+    },
   };
+};
+
+// get single user
+const getSingleUserFromDB = async (id: string) => {
+  const result = await User.findById(id);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found');
+  }
+  return result;
+};
+
+// delete user
+const deleteUserFromDB = async (id: string) => {
+  const result = await User.findByIdAndDelete(id);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found');
+  }
+  return result;
+};
+
+// Todo: app charge and payment history
+
+// agency
+const totalAgency = async (query: Record<string, unknown>) => {
+  const { year, ...remainingQuery } = query;
+
+  let userQuery = User.find({ role: 'AGENCY' });
+
+  // Add year filter if provided
+  if (year) {
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    userQuery = userQuery.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
+  }
+
+  const userBuilder = new QueryBuilder(userQuery, remainingQuery)
+    .search(['name', 'email', 'location'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await userBuilder.modelQuery;
+  const paginationInfo = await userBuilder.getPaginationInfo();
+
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Agency not found');
+  }
+
+  return {
+    data: {
+      meta: paginationInfo,
+      data: result,
+    },
+  };
+};
 
 export const DashboardService = {
   dashboardStatisticsIntoDB,
   getRecentUserForDashboard,
   getAllUsers,
+  getSingleUserFromDB,
+  deleteUserFromDB,
+  totalAgency,
 };
