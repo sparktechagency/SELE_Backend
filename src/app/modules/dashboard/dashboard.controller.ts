@@ -73,7 +73,15 @@ const deleteUserFromDB = catchAsync(async(req:Request, res:Response)=>{
 })
 
 // Todo: app charge and payment history
-
+const totalEarning = catchAsync(async(req:Request, res:Response)=>{
+  const result = await DashboardService.totalEarningFromDB();
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Earning fetched successfully',
+    data: result,
+  });
+})
 // agency
 const totalAgency = catchAsync(async(req:Request, res:Response)=>{
   const result = await DashboardService.totalAgency(req.query);
@@ -114,5 +122,6 @@ export const DashboardController = {
   deleteUserFromDB,
   totalAgency,
   getSingleAgency,
-  deleteAgencyFromDB
+  deleteAgencyFromDB,
+  totalEarning
 };

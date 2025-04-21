@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
 import { User } from '../user/user.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { ReserveDetailsModel } from '../reservedetails/reservedetails.model';
 
 // dashboard statistics
 const dashboardStatisticsIntoDB = async () => {
@@ -85,6 +86,40 @@ const deleteUserFromDB = async (id: string) => {
 };
 
 // Todo: app charge and payment history
+const totalEarningFromDB = async () => {
+    const result = await ReserveDetailsModel.aggregate([
+      {
+        $match: {
+          progressStatus: { $in: ['Delivered', 'Assigned'] }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAppCharge: { $sum: 10 },
+          totalOrders: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalAppCharge: 1,
+          totalOrders: 1
+        }
+      }
+    ]);
+  
+    if (!result.length) {
+      return {
+        totalAppCharge: 0,
+        totalOrders: 0
+      };
+    }
+
+    return result[0];
+};
+
+
 
 // agency
 const totalAgency = async (query: Record<string, unknown>) => {
@@ -160,4 +195,5 @@ export const DashboardService = {
   totalAgency,
   getSingleAgencyFromDB,
   deleteAgencyFromDB,
+ totalEarningFromDB
 };

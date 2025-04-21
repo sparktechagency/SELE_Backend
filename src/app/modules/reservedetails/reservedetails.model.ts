@@ -8,11 +8,11 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
   },
   brandName: {
     type: Schema.Types.ObjectId,
-    ref: 'Brand', 
+    ref: 'Brand',
   },
   category: {
     type: Schema.Types.ObjectId,
-    ref: 'Category', 
+    ref: 'Category',
   },
   startDate: {
     type: String,
@@ -38,18 +38,22 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
   },
   orderId: {
     type: String,
-    required: false
+    required: false,
   },
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: false,
   },
-  trxId:{
+  trxId: {
     type: String,
-    default:null,
+    default: null,
     required: false,
-  }
+  },
+  appCharge: {
+    type: Number,
+    default: 10,
+  },
 });
 
 export const ReserveDetailsModel = model<IReserveDetails>(

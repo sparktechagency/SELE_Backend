@@ -15,4 +15,5 @@ export type IReserveDetails = {
   brandName?:Types.ObjectId;
   agencyId?:Types.ObjectId;
   trxId?:string;
+  appCharge?:number;
 };
