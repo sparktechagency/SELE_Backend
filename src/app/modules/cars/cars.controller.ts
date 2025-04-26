@@ -31,30 +31,20 @@ const createCar = catchAsync(async (req: Request, res: Response) => {
 const getAllCars = catchAsync(async (req: Request, res: Response) => {
   const filter: any = req.query;
 
-  // Ensure the default values for pagination
-  filter.page = filter.page || 1;
-  filter.limit = filter.limit || 10;
-
   // Call the service with the filters
   const result = await CarsServices.getAllCarsFromDB(filter);
 
-  // Pagination info calculation based on the result's length
-  const pagination = {
-    page: Number(filter.page),
-    limit: Number(filter.limit),
-    // @ts-ignore
-    total: result.length, // You may want to calculate the total records here, or in the service
-    // @ts-ignore
-    totalPage: Math.ceil(result?.length / Number(filter?.limit)),
-  };
+  
 
   // Send the response with pagination data
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Cars fetched successfully',
-    data: result.data, // The actual data
-    pagination, // Pagination info
+    // @ts-ignore
+    data: result.data,
+    // @ts-ignore
+    meta:result.meta
   });
 });
 
