@@ -2,9 +2,9 @@ import { INotification } from './notification.interface';
 import { Notification } from './notification.model';
 import ApiError from '../../../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
-import { paginationHelper } from '../../../helpers/paginationHelper';
-import { IPaginationOptions } from '../../../types/pagination';
 import { Types } from 'mongoose';
+import { JwtPayload } from 'jsonwebtoken';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 const createNotification = async (notification: INotification) => {
   const result = await Notification.create(notification);
@@ -42,39 +42,29 @@ const updateNotification = async (notificationId: string, userId: string) => {
   return notification;
 };
 
-const getAllNotificationsIntoDB = async (options: IPaginationOptions) => {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelper.calculatePagination(options);
+const getAllNotificationsIntoDB = async (
+  query: Record<string, any>,
+  user: JwtPayload
+) => {
+  const baseQuery = Notification.find({ userId: user.id });
 
-  // Get total count of notifications for pagination
-  const total = await Notification.countDocuments();
+  const notificationQuery = new QueryBuilder(baseQuery, query);
 
-  // Fetch the notifications with pagination
-  const result = await Notification.find()
-    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-    .skip(skip)
-    .limit(limit);
+  // Apply query modifications
+  notificationQuery.search(['title', 'message']).filter().sort().paginate();
 
-  if (!result) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'Failed to get all notifications'
-    );
-  }
+  // Finally execute the query
+  const notifications = await notificationQuery.modelQuery;
 
-  // Calculate total pages
-  const totalPages = Math.ceil(total / limit);
+  // Optional: Pagination info jodi dorkar hoy
+  const paginationInfo = await notificationQuery.getPaginationInfo();
 
   return {
-    result,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages,
-    },
+    meta: paginationInfo,
+    data: notifications,
   };
 };
+
 
 export const NotificationServices = {
   createNotification,

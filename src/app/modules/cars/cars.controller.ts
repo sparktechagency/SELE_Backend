@@ -92,10 +92,24 @@ const deleteCar = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllCarsByAgencyId = catchAsync(async (req: Request, res: Response) => {
+  const agencyId = req.user.id;
+  const query = req.query;
+  const result = await CarsServices.getCarBaseOnAgencyIdFromDB(agencyId, query);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Cars fetched successfully',
+    data: result.data,
+    meta:result.meta
+  });
+});
+
 export const CarsController = {
   createCar,
   getAllCars,
   getSingleCar,
   updateCar,
   deleteCar,
+  getAllCarsByAgencyId,
 };

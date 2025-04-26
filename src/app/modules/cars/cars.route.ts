@@ -60,7 +60,8 @@ router.post(
     CarsController.createCar  // Controller function to create the car
 );
 
-
+// get all cars by agency id
+router.get('/agency', auth(USER_ROLES.AGENCY), CarsController.getAllCarsByAgencyId);
 // get all
 router.get('/', CarsController.getAllCars);
 // get single one

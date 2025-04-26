@@ -48,24 +48,18 @@ const updateNotification = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllNotifications = catchAsync(async (req: Request, res: Response) => {
-  const paginationOptions: any = {
-    page: req.query.page || 1,
-    limit: req.query.limit || 10,
-    sortBy: req.query.sortBy || 'createdAt',
-    sortOrder: req.query.sortOrder || 'desc',
-  };
-
-  // Call the service to get paginated notifications
-  const { result: notifications, pagination } =
-    await NotificationServices.getAllNotificationsIntoDB(paginationOptions);
+  const result = await NotificationServices.getAllNotificationsIntoDB(
+    req.query, 
+    req.user
+  );
 
   sendResponse(res, {
-    statusCode: 200,
+    statusCode:StatusCodes.OK,
     success: true,
-    message: 'Notifications fetched successfully',
-    data: notifications,
+    message: 'Notifications retrieved successfully',
+    meta: result.meta,
     // @ts-ignore
-    pagination,
+    data: result.data,
   });
 });
 

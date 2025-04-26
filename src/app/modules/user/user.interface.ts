@@ -19,6 +19,13 @@ export type IUser = {
   latitude?: number;
   longitude?: number;
   description?: string;
+  accountInformation?: {
+    status: boolean;
+    stripeAccountId: string;
+    externalAccountId: string;
+    currency: string;
+    accountUrl: string;
+  };
 };
 
 export type UserModal = {

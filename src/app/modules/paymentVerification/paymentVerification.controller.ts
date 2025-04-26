@@ -63,10 +63,15 @@ const createCarPaymentSession = catchAsync(
 
 const createAccountIntoStripe = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId = req.user.id;
-    const existingUser: any = await User.findById(userId).lean();
-    if (existingUser.accountUrl) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+    const user = req.user;
+    const existingUser: any = await User.findById(user.id)
+      .select('+accountInformation')
+      .lean();
+    if (existingUser?.accountInformation?.accountUrl) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        'You already connected your bank on Stripe.'
+      );
     }
     // @ts-ignore
     const account = await stripe.accounts.create({
@@ -95,12 +100,12 @@ const createAccountIntoStripe = catchAsync(
     // Create an account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: 'https://10.0.70.188:5003/onboarding-refresh', 
-      return_url: 'https://10.0.70.188:5003/onboarding-success', 
+      refresh_url: 'https://10.0.70.188:5003/onboarding-refresh',
+      return_url: 'https://10.0.70.188:5003/onboarding-success',
       type: 'account_onboarding',
     });
     const updateAccount = await User.findByIdAndUpdate(
-      userId,
+      user.id,
       { 'accountInformation.stripeAccountId': account.id },
       { new: true }
     );

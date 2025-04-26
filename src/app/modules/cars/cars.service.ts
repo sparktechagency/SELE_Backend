@@ -3,7 +3,7 @@ import ApiError from '../../../errors/ApiError';
 import { ICars } from './cars.interface';
 import { CarsModel } from './cars.model';
 import mongoose from 'mongoose';
-import { paginationHelper } from '../../../helpers/paginationHelper';
+import QueryBuilder from '../../builder/QueryBuilder';
 // create car
 const createCarIntoDB = async (payload: ICars, agencyId: string) => {
   const car = await CarsModel.create({ ...payload, agencyId });
@@ -26,7 +26,7 @@ const getAllCarsFromDB = async (filters: any) => {
 
     if (!isNaN(minPrice) && !isNaN(maxPrice)) {
       match.price = {
-        $gte: Math.min(minPrice, maxPrice), 
+        $gte: Math.min(minPrice, maxPrice),
         $lte: Math.max(minPrice, maxPrice),
       };
     }
@@ -178,6 +178,7 @@ const getAllCarsFromDB = async (filters: any) => {
   };
 };
 
+
 // get car by id
 const getSingleCarFromDB = async (id: string) => {
   const car = await CarsModel.aggregate([
@@ -308,10 +309,39 @@ const deleteCarFromDB = async (id: string) => {
   return car;
 };
 
+const getCarBaseOnAgencyIdFromDB = async (
+  agencyId: string,
+  query: Record<string, unknown>
+) => {
+  const modelQuery = CarsModel.find({ agencyId }).populate([
+    { path: 'brandName' },
+    { path: 'category' },
+    { path: 'agencyId' },
+  ]);
+
+  const queryBuilder = new QueryBuilder(modelQuery, query);
+
+  queryBuilder.paginate(); // apply pagination
+
+  const cars = await queryBuilder.modelQuery;
+
+  if (!cars.length) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');
+  }
+
+  const paginationInfo = await queryBuilder.getPaginationInfo();
+
+  return {
+    meta: paginationInfo,
+    data: cars,
+  };
+};
+
 export const CarsServices = {
   createCarIntoDB,
   getAllCarsFromDB,
   getSingleCarFromDB,
   updateCarIntoDB,
   deleteCarFromDB,
+  getCarBaseOnAgencyIdFromDB,
 };
