@@ -12,234 +12,189 @@ const createCarIntoDB = async (payload: ICars, agencyId: string) => {
   }
   return car;
 };
-// const getAllCarsFromDB = async (filters: any) => {
-//   const page = filters.page ? Number(filters.page) : 1;
-//   const limit = filters.limit ? Number(filters.limit) : 10;
-//   const skip = (page - 1) * limit;
+const getAllCarsFromDB = async (filters: any) => {
+  const page = filters.page ? Number(filters.page) : 1;
+  const limit = filters.limit ? Number(filters.limit) : 10;
+  const skip = (page - 1) * limit;
 
-//   const match: any = {};
+  const match: any = {};
 
-//   // Price filter
-//   if (filters.minPrice || filters.maxPrice) {
-//     const minPrice = filters.minPrice ? Number(filters.minPrice) : 0;
-//     const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : Infinity;
+  // Price filter - IMPROVED IMPLEMENTATION
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    match.price = {};
 
-//     if (!isNaN(minPrice) && !isNaN(maxPrice)) {
-//       match.price = {
-//         $gte: Math.min(minPrice, maxPrice),
-//         $lte: Math.max(minPrice, maxPrice),
-//       };
-//     }
-//   }
+    if (filters.minPrice !== undefined && filters.minPrice !== '') {
+      const minPriceValue = String(filters.minPrice).replace(/[^0-9.]/g, '');
+      const minPrice = Number(minPriceValue);
+      if (!isNaN(minPrice)) {
+        match.price.$gte = minPrice;
+      }
+    }
 
-//   // Kilometres
-//   if (filters.kilometresData) {
-//     const kmValue = Number(filters.kilometresData);
-//     if (!isNaN(kmValue)) {
-//       match.kilometresData = kmValue;
-//     }
-//   }
+    if (filters.maxPrice !== undefined && filters.maxPrice !== '') {
+      const maxPriceValue = String(filters.maxPrice).replace(/[^0-9.]/g, '');
+      const maxPrice = Number(maxPriceValue);
+      if (!isNaN(maxPrice)) {
+        match.price.$lte = maxPrice;
+      }
+    }
 
-//   // Brand
-//   if (filters.brandName) {
-//     match.brandName = new mongoose.Types.ObjectId(filters.brandName);
-//   }
-
-//   // Transmission
-//   if (filters.transmission) {
-//     match.transmission = filters.transmission;
-//   }
-
-//   // Category
-//   if (filters.category) {
-//     match.category = new mongoose.Types.ObjectId(filters.category);
-//   }
-
-//   const sortBy = filters.sortBy || 'createdAt';
-//   const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
-
-//   const cars = await CarsModel.aggregate([
-//     { $match: match },
-//     // Get car owner details (userDetails)
-//     {
-//       $lookup: {
-//         from: 'users',
-//         localField: 'agencyId',
-//         foreignField: '_id',
-//         as: 'userDetails',
-//         pipeline: [
-//           {
-//             $project: {
-//               name: 1,
-//               email: 1,
-//               location: 1,
-//               image: 1,
-//               description: 1,
-//             },
-//           },
-//         ],
-//       },
-//     },
-//     {
-//       $unwind: '$userDetails',
-//     },
-//     // Get reviews (with reviewer details)
-//     {
-//       $lookup: {
-//         from: 'ratings',
-//         localField: '_id',
-//         foreignField: 'carId',
-//         as: 'reviews',
-//         pipeline: [
-//           {
-//             $lookup: {
-//               from: 'users',
-//               localField: 'userId',
-//               foreignField: '_id',
-//               as: 'reviewerDetails',
-//               pipeline: [
-//                 {
-//                   $project: {
-//                     name: 1,
-//                     location: 1,
-//                     image: 1,
-//                   },
-//                 },
-//               ],
-//             },
-//           },
-//           {
-//             $unwind: '$reviewerDetails',
-//           },
-//           {
-//             $project: {
-//               rating: 1,
-//               review: 1,
-//               'reviewerDetails.name': 1,
-//               'reviewerDetails.location': 1,
-//               'reviewerDetails.image': 1,
-//             },
-//           },
-//         ],
-//       },
-//     },
-//     // Get brand details
-//     {
-//       $lookup: {
-//         from: 'brands',
-//         localField: 'brandName',
-//         foreignField: '_id',
-//         as: 'brandName',
-//       },
-//     },
-//     {
-//       $unwind: '$brandName',
-//     },
-//     // Get category details
-//     {
-//       $lookup: {
-//         from: 'categories',
-//         localField: 'category',
-//         foreignField: '_id',
-//         as: 'category',
-//       },
-//     },
-//     {
-//       $unwind: '$category',
-//     },
-//     // Calculate average rating and total reviews
-//     {
-//       $addFields: {
-//         averageRating: {
-//           $cond: {
-//             if: { $gt: [{ $size: '$reviews' }, 0] },
-//             then: { $avg: '$reviews.rating' },
-//             else: 0,
-//           },
-//         },
-//         totalReviews: { $size: '$reviews' },
-//       },
-//     },
-//     { $sort: { [sortBy]: sortOrder } },
-//     { $skip: skip },
-//     { $limit: limit },
-//   ]);
-
-//   const total = await CarsModel.countDocuments(match);
-
-//   return {
-//     meta: {
-//       total,
-//       page,
-//       limit,
-//       totalPage: Math.ceil(total / limit),
-//     },
-//     data: cars,
-//   };
-// };
-const getAllCarsFromDB = async (query: Record<string, unknown>) => {
-  // Step 1: Start the model query and populate the required fields
-  const modelQuery = CarsModel.find().populate([
-    { path: 'brandName' },
-    { path: 'category' },
-    { path: 'agencyId' },
-    {
-      path: 'ratings', // Populate ratings
-      populate: {
-        path: 'userId', // Populate reviewer details inside ratings
-        select: 'name location image', // Select reviewer fields
-      },
-    },
-  ]);
-
-  // Step 2: Pass query and modelQuery to QueryBuilder for pagination, filtering, and searching
-  const queryBuilder = new QueryBuilder(modelQuery, query);
-  queryBuilder
-    .paginate() // Pagination logic
-    .filter()   // Apply filters (like price, brand, etc.)
-    .search(["brandName", "transmission", "kilometresData", "category", "price"]); // Searching the fields
-
-  // Step 3: Get filtered cars
-  const cars = await queryBuilder.modelQuery;
-
-  // Step 4: If no cars found, throw error with price range if applicable
-  if (!cars.length) {
-    const priceRange = query.price ? `Price Range: ${(query.price as any).min} - ${(query.price as any).max}` : '';
-    console.log(priceRange);
-    return []
+    if (Object.keys(match.price).length === 0) {
+      delete match.price;
+    }
   }
 
-  // Step 5: Add average rating and total reviews to each car
-  const updatedCars = cars.map(car => {
-    // @ts-ignore
-    const reviews = (car.ratings || []) as any[];
-    const totalReviews = reviews.length;
+  // Kilometres
+  if (filters.kilometresData) {
+    const kmValue = Number(filters.kilometresData);
+    if (!isNaN(kmValue)) {
+      match.kilometresData = kmValue;
+    }
+  }
 
-    const averageRating = totalReviews > 0
-      ? reviews.reduce((acc, review) => acc + (review.rating || 0), 0) / totalReviews
-      : 0;
+  // Brand
+  if (filters.brandName) {
+    match.brandName = new mongoose.Types.ObjectId(filters.brandName);
+  }
 
-    return {
-      ...car.toObject(),   // Convert Mongoose document to plain JS object
-      averageRating: averageRating, // always add
-      totalReviews: totalReviews,   // always add
-    };
-  });
+  // Transmission
+  if (filters.transmission) {
+    match.transmission = filters.transmission;
+  }
 
-  // Step 6: Get pagination info
-  const paginationInfo = await queryBuilder.getPaginationInfo();
+  // Category
+  if (filters.category) {
+    match.category = new mongoose.Types.ObjectId(filters.category);
+  }
 
-  // Step 7: Return the result with pagination meta and car data
+  const sortBy = filters.sortBy || 'createdAt';
+  const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
+  // For debugging - print the actual query being executed
+  console.log(
+    'Price Filter Query:',
+    JSON.stringify(match.price || {}, null, 2)
+  );
+  console.log('Full Match Query:', JSON.stringify(match, null, 2));
+
+  const cars = await CarsModel.aggregate([
+    { $match: match },
+    // Get car owner details (userDetails)
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'agencyId',
+        foreignField: '_id',
+        as: 'userDetails',
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              email: 1,
+              location: 1,
+              image: 1,
+              description: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: '$userDetails',
+    },
+    // Get reviews (with reviewer details)
+    {
+      $lookup: {
+        from: 'ratings',
+        localField: '_id',
+        foreignField: 'carId',
+        as: 'reviews',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'userId',
+              foreignField: '_id',
+              as: 'reviewerDetails',
+              pipeline: [
+                {
+                  $project: {
+                    name: 1,
+                    location: 1,
+                    image: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: '$reviewerDetails',
+          },
+          {
+            $project: {
+              rating: 1,
+              review: 1,
+              'reviewerDetails.name': 1,
+              'reviewerDetails.location': 1,
+              'reviewerDetails.image': 1,
+            },
+          },
+        ],
+      },
+    },
+    // Get brand details
+    {
+      $lookup: {
+        from: 'brands',
+        localField: 'brandName',
+        foreignField: '_id',
+        as: 'brandName',
+      },
+    },
+    {
+      $unwind: '$brandName',
+    },
+    // Get category details
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    {
+      $unwind: '$category',
+    },
+    // Calculate average rating and total reviews
+    {
+      $addFields: {
+        averageRating: {
+          $cond: {
+            if: { $gt: [{ $size: '$reviews' }, 0] },
+            then: { $avg: '$reviews.rating' },
+            else: 0,
+          },
+        },
+        totalReviews: { $size: '$reviews' },
+      },
+    },
+    { $sort: { [sortBy]: sortOrder } },
+    { $skip: skip },
+    { $limit: limit },
+  ]);
+
+  const total = await CarsModel.countDocuments(match);
+
   return {
-    meta: paginationInfo,
-    data: updatedCars,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPage: Math.ceil(total / limit),
+    },
+    data: cars,
   };
 };
-
-
-
-
-
 
 // get car by id
 const getSingleCarFromDB = async (id: string) => {
