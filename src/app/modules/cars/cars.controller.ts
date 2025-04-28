@@ -100,8 +100,8 @@ const getAllCarsByAgencyId = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'Cars fetched successfully',
-    data: result.data,
-    meta:result.meta
+    data: result,
+    // meta:result.meta
   });
 });
 

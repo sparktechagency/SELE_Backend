@@ -66,7 +66,9 @@ const getSpecificReserveDetails = catchAsync(
         },
         req.user.id
       );
+
     const appCharges = data.data?.[0]?.appCharge ?? 10;
+
     const processedData = data.data.map((reservation: any) => {
       const startDate = new Date(reservation.startDate);
       const endDate = new Date(reservation.endDate);
@@ -76,19 +78,19 @@ const getSpecificReserveDetails = catchAsync(
       const days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
 
       // Calculate total cost
-      const dailyPrice = reservation.carId.price;
+      const dailyPrice = reservation?.carId?.price;
       const rentalCost = dailyPrice * days;
-
       const totalCost = rentalCost + appCharges;
 
       return {
-        ...reservation.toObject(),
+        ...reservation, // 🔥 No toObject() needed anymore
         Day: days,
         price: dailyPrice,
         appCharge: appCharges,
         finalTotal: totalCost,
       };
     });
+
     sendResponse(res, {
       statusCode: 200,
       success: true,
@@ -99,6 +101,7 @@ const getSpecificReserveDetails = catchAsync(
     });
   }
 );
+
 
 const getSpecificReserveHistory = catchAsync(
   async (req: Request, res: Response) => {

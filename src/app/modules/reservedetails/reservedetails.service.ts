@@ -174,11 +174,13 @@ const getReceivedAInProgressAndAssignedReserveData = async (
 ) => {
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelper.calculatePagination(options);
+
   const allowedStatuses = ['Request', 'InProgress', 'Assigned'];
   const filter: any = {
     progressStatus: { $in: allowedStatuses },
   };
-  const result = await ReserveDetailsModel.find(filter)
+
+  const data = await ReserveDetailsModel.find(filter)
     .populate({
       path: 'carId',
       populate: [
@@ -190,16 +192,90 @@ const getReceivedAInProgressAndAssignedReserveData = async (
     .populate('userId')
     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
+
+  const reserveDataWithRatings = await Promise.all(
+    data.map(async reserve => {
+      const carId = reserve?.carId?._id;
+
+      // Rental days calculation
+      const start = new Date(reserve?.startDate);
+      const end = new Date(reserve?.endDate);
+      const timeDiff = end.getTime() - start.getTime();
+      const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+      // Price calculation
+      const pricePerDay = (reserve?.carId as any)?.price || 0;
+      const price = pricePerDay * Day;
+      const appCharge = 10;
+      const finalTotal = +(price + appCharge).toFixed(2);
+
+      // Ratings aggregation
+      const [ratingAggregation] = await Rating.aggregate([
+        { $match: { carId } },
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalRatings: { $sum: 1 },
+          },
+        },
+      ]);
+
+      const ratingPage = 1;
+      const ratingLimit = 10;
+      const ratingSkip = (ratingPage - 1) * ratingLimit;
+
+      const reviews = await Rating.find({ carId })
+        .skip(ratingSkip)
+        .limit(ratingLimit)
+        .populate('userId', 'name email image')
+        .lean();
+
+      const carWithRatings = {
+        ...(reserve.carId as any)?._doc,
+        ratings: {
+          averageRating: ratingAggregation?.averageRating?.toFixed(1) || 0,
+          totalRatings: ratingAggregation?.totalRatings || 0,
+          reviews: {
+            data: reviews.map(r => ({
+              userId: r?.userId,
+              rating: r?.rating,
+              review: r?.review,
+              createdAt: r?.createdAt,
+            })),
+            pagination: {
+              page: ratingPage,
+              limit: ratingLimit,
+              totalPages: Math.ceil(
+                (ratingAggregation?.totalRatings || 0) / ratingLimit
+              ),
+            },
+          },
+        },
+      };
+
+      return {
+        ...reserve,
+        carId: carWithRatings,
+        Day,
+        price,
+        appCharge,
+        finalTotal,
+      };
+    })
+  );
 
   const total = await ReserveDetailsModel.countDocuments(filter);
+
   return {
     meta: {
       page,
       limit,
       total,
     },
-    data: result,
+    data: reserveDataWithRatings,
   };
 };
 
@@ -240,23 +316,98 @@ const getReserveHistory = async (
 };
 
 const getSingleReserveData = async (id: string) => {
-  const data = await ReserveDetailsModel.findById(id).populate([
-    {
-      path: 'carId',
-      populate: [
-        { path: 'brandName' },
-        { path: 'category' },
-        { path: 'agencyId' },
-      ],
-    },
-    { path: 'userId' },
-  ]);
+  const reserve = await ReserveDetailsModel.findById(id)
+    .populate([
+      {
+        path: 'carId',
+        populate: [
+          {
+            path: 'agencyId brandName',
+            select:
+              'name email image description location role brandName logo latitude longitude',
+          },
+          { path: 'category', select: 'category' },
+        ],
+      },
+      {
+        path: 'userId',
+        select: 'name email image description location role ',
+      },
+    ]);
 
-  if (!data) {
+  if (!reserve) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'No Reserve Data found');
   }
-  return data;
+
+  const carId = reserve.carId?._id;
+
+  // Calculate rental days
+  const start = new Date(reserve?.startDate);
+  const end = new Date(reserve?.endDate);
+  const timeDiff = end.getTime() - start.getTime();
+  const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+  // Price calculations
+  const pricePerDay = (reserve?.carId as any)?.price;
+  const price = pricePerDay * Day;
+  const appCharge = 10;
+  const finalTotal = +(price + appCharge).toFixed(2);
+
+  // Rating aggregation
+  const [ratingAggregation] = await Rating.aggregate([
+    { $match: { carId } },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: '$rating' },
+        totalRatings: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const ratingPage = 1;
+  const ratingLimit = 10;
+  const ratingSkip = (ratingPage - 1) * ratingLimit;
+
+  const reviews = await Rating.find({ carId })
+    .skip(ratingSkip)
+    .limit(ratingLimit)
+    .populate('userId', 'name email image');
+
+  const carWithRatings = {
+    ...(reserve.carId as any)?._doc,
+    ratings: {
+      averageRating: ratingAggregation?.averageRating?.toFixed(1) || 0,
+      totalRatings: ratingAggregation?.totalRatings || 0,
+      reviews: {
+        data: reviews.map(r => ({
+          userId: r?.userId,
+          rating: r?.rating,
+          review: r?.review,
+          createdAt: r?.createdAt,
+        })),
+        pagination: {
+          page: ratingPage,
+          limit: ratingLimit,
+          totalPages: Math.ceil(
+            (ratingAggregation?.totalRatings || 0) / ratingLimit
+          ),
+        },
+      },
+    },
+  };
+
+  return {
+    ...reserve.toObject(),
+    carId: carWithRatings,
+    Day,
+    price,
+    appCharge,
+    finalTotal,
+  };
 };
+
+
 // Update Reserve Details
 const updateReserveDetails = async (id: string, progressStatus: string) => {
   const updatedData: any = await ReserveDetailsModel.findByIdAndUpdate(
@@ -304,8 +455,8 @@ const getReserveStatistics = async () => {
         from: 'cars',
         localField: 'carId',
         foreignField: '_id',
-        as: 'carDetails'
-      }
+        as: 'carDetails',
+      },
     },
     {
       $group: {
@@ -315,53 +466,62 @@ const getReserveStatistics = async () => {
           $sum: {
             $multiply: [
               { $arrayElemAt: ['$carDetails.price', 0] },
-              { $subtract: [
-                { $divide: [
-                  { $subtract: [
-                    { $toDate: '$endDate' },
-                    { $toDate: '$startDate' }
-                  ]},
-                  1000 * 60 * 60 * 24
-                ]},
-                0
-              ]}
-            ]
-          }
-        }
-      }
-    }
+              {
+                $subtract: [
+                  {
+                    $divide: [
+                      {
+                        $subtract: [
+                          { $toDate: '$endDate' },
+                          { $toDate: '$startDate' },
+                        ],
+                      },
+                      1000 * 60 * 60 * 24,
+                    ],
+                  },
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },
   ]);
 
   // Transform the results into the desired format
   const statistics = orderStats.reduce((acc: any, stat) => {
     acc[stat._id.toLowerCase() + 'Order'] = {
       count: stat.count,
-      amount: stat.totalAmount.toFixed(2)
+      amount: stat.totalAmount.toFixed(2),
     };
     return acc;
   }, {});
 
   // Calculate total orders and amount
-  const totalStats = orderStats.reduce((acc, stat) => {
-    acc.count += stat.count;
-    acc.amount += stat.totalAmount;
-    return acc;
-  }, { count: 0, amount: 0 });
+  const totalStats = orderStats.reduce(
+    (acc, stat) => {
+      acc.count += stat.count;
+      acc.amount += stat.totalAmount;
+      return acc;
+    },
+    { count: 0, amount: 0 }
+  );
 
   // Ensure requestOrder exists even if there are no requests
   if (!statistics.requestOrder) {
     statistics.requestOrder = {
       count: 0,
-      amount: '0.00'
+      amount: '0.00',
     };
   }
 
   return {
     totalOrder: {
       count: totalStats.count,
-      amount: totalStats.amount.toFixed(2)
+      amount: totalStats.amount.toFixed(2),
     },
-    ...statistics
+    ...statistics,
   };
 };
 

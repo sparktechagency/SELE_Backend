@@ -69,12 +69,6 @@ const getAllCarsFromDB = async (filters: any) => {
 
   const sortBy = filters.sortBy || 'createdAt';
   const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
-  // For debugging - print the actual query being executed
-  console.log(
-    'Price Filter Query:',
-    JSON.stringify(match.price || {}, null, 2)
-  );
-  console.log('Full Match Query:', JSON.stringify(match, null, 2));
 
   const cars = await CarsModel.aggregate([
     { $match: match },
@@ -302,7 +296,7 @@ const getSingleCarFromDB = async (id: string) => {
     },
   ]);
   if (!car.length) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');
+    return []
   }
 
   return car[0];
@@ -343,7 +337,7 @@ const getCarBaseOnAgencyIdFromDB = async (
   const cars = await queryBuilder.modelQuery;
 
   if (!cars.length) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');
+    return []
   }
 
   const paginationInfo = await queryBuilder.getPaginationInfo();
