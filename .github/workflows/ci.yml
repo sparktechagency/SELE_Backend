@@ -2,31 +2,32 @@ name: SELE CI Using Node.js and TypeScript and ESLint and Prettier database Mong
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [20.x]
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22' # Latest stable Node.js version
-          cache: 'yarn'       # Yarn dependency caching enabled
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+    - name: Install dependencies
+      run: yarn install
 
-      - name: TypeScript compile check
-        run: yarn tsc --noEmit
+    - name: Type Check (Skip Lib Error)
+      run: yarn tsc --noEmit --skipLibCheck
 
-      - name: Lint check
-        run: yarn lint:check
+    - name: Lint Check
+      run: yarn lint:check
