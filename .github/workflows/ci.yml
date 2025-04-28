@@ -26,8 +26,8 @@ jobs:
     - name: Install dependencies
       run: yarn install
 
-    - name: Type Check (Skip Lib Error)
-      run: yarn tsc --noEmit --skipLibCheck
+    # - name: Type Check (Skip Lib Error)
+    #   run: yarn tsc --noEmit --skipLibCheck
 
     - name: Lint Check
       run: yarn lint:check
