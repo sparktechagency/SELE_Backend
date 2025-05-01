@@ -83,7 +83,7 @@ const getSpecificReserveDetails = catchAsync(
       const totalCost = rentalCost + appCharges;
 
       return {
-        ...reservation, // 🔥 No toObject() needed anymore
+        ...reservation,
         Day: days,
         price: dailyPrice,
         appCharge: appCharges,

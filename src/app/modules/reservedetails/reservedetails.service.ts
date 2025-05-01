@@ -7,6 +7,8 @@ import { IPaginationOptions } from '../../../types/pagination';
 import { sendNotifications } from '../../../helpers/notificationSender';
 import { Rating } from '../reting/reting.model';
 import { CarsModel } from '../cars/cars.model';
+import { progressStatus } from '../../../enums/progressStatus';
+import { paymentVerificationModel } from '../paymentVerification/paymentVerification.model';
 
 // create reserve Data
 
@@ -167,6 +169,119 @@ const getAllReserveData = async (
   };
 };
 
+// const getReceivedAInProgressAndAssignedReserveData = async (
+//   options: IPaginationOptions,
+//   userId: string,
+//   role?: string
+// ) => {
+//   const { page, limit, skip, sortBy, sortOrder } =
+//     paginationHelper.calculatePagination(options);
+
+//   const allowedStatuses = ['Request', 'InProgress', 'Assigned'];
+//   const filter: any = {
+//     progressStatus: { $in: allowedStatuses },
+//   };
+
+//   const data = await ReserveDetailsModel.find(filter)
+//     .populate({
+//       path: 'carId',
+//       populate: [
+//         { path: 'brandName' },
+//         { path: 'category' },
+//         { path: 'agencyId' },
+//       ],
+//     })
+//     .populate('userId')
+//     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+//     .skip(skip)
+//     .limit(limit)
+//     .lean();
+//   console.log(data);
+//   const reserveDataWithRatings = await Promise.all(
+//     data.map(async reserve => {
+//       const carId = reserve?.carId?._id;
+//       console.log(carId);
+
+//       // Rental days calculation
+//       const start = new Date(reserve?.startDate);
+//       const end = new Date(reserve?.endDate);
+//       const timeDiff = end.getTime() - start.getTime();
+//       const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+//       // Price calculation
+//       const pricePerDay = (reserve?.carId as any)?.price || 0;
+//       const price = pricePerDay * Day;
+//       const appCharge = 10;
+//       const finalTotal = +(price + appCharge).toFixed(2);
+
+//       // Ratings aggregation
+//       const [ratingAggregation] = await Rating.aggregate([
+//         { $match: { carId } },
+//         {
+//           $group: {
+//             _id: null,
+//             averageRating: { $avg: '$rating' },
+//             totalRatings: { $sum: 1 },
+//           },
+//         },
+//       ]);
+
+//       const ratingPage = 1;
+//       const ratingLimit = 10;
+//       const ratingSkip = (ratingPage - 1) * ratingLimit;
+
+//       const reviews = await Rating.find({ carId })
+//         .skip(ratingSkip)
+//         .limit(ratingLimit)
+//         .populate('userId', 'name email image')
+//         .lean();
+//       console.log(reviews);
+//       const carWithRatings = {
+//         ...(reserve.carId as any)?._doc,
+//         ratings: {
+//           averageRating: ratingAggregation?.averageRating?.toFixed(1) || 0,
+//           totalRatings: ratingAggregation?.totalRatings || 0,
+//           reviews: {
+//             data: reviews.map(r => ({
+//               userId: r?.userId,
+//               rating: r?.rating,
+//               review: r?.review,
+//               createdAt: r?.createdAt,
+//             })),
+//             pagination: {
+//               page: ratingPage,
+//               limit: ratingLimit,
+//               totalPages: Math.ceil(
+//                 (ratingAggregation?.totalRatings || 0) / ratingLimit
+//               ),
+//             },
+//           },
+//         },
+//       };
+
+//       return {
+//         ...reserve,
+//         carId: carWithRatings,
+//         Day,
+//         price,
+//         appCharge,
+//         finalTotal,
+//       };
+//     })
+//   );
+
+//   const total = await ReserveDetailsModel.countDocuments(filter);
+
+//   return {
+//     meta: {
+//       page,
+//       limit,
+//       total,
+//     },
+//     data: reserveDataWithRatings,
+//   };
+// };
+
 const getReceivedAInProgressAndAssignedReserveData = async (
   options: IPaginationOptions,
   userId: string,
@@ -176,8 +291,10 @@ const getReceivedAInProgressAndAssignedReserveData = async (
     paginationHelper.calculatePagination(options);
 
   const allowedStatuses = ['Request', 'InProgress', 'Assigned'];
+
   const filter: any = {
     progressStatus: { $in: allowedStatuses },
+    userId: userId, // ✅ Filter only by logged-in user's bookings
   };
 
   const data = await ReserveDetailsModel.find(filter)
@@ -234,7 +351,7 @@ const getReceivedAInProgressAndAssignedReserveData = async (
         .lean();
 
       const carWithRatings = {
-        ...(reserve.carId as any)?._doc,
+        ...reserve.carId,
         ratings: {
           averageRating: ratingAggregation?.averageRating?.toFixed(1) || 0,
           totalRatings: ratingAggregation?.totalRatings || 0,
@@ -316,24 +433,23 @@ const getReserveHistory = async (
 };
 
 const getSingleReserveData = async (id: string) => {
-  const reserve = await ReserveDetailsModel.findById(id)
-    .populate([
-      {
-        path: 'carId',
-        populate: [
-          {
-            path: 'agencyId brandName',
-            select:
-              'name email image description location role brandName logo latitude longitude',
-          },
-          { path: 'category', select: 'category' },
-        ],
-      },
-      {
-        path: 'userId',
-        select: 'name email image description location role ',
-      },
-    ]);
+  const reserve = await ReserveDetailsModel.findById(id).populate([
+    {
+      path: 'carId',
+      populate: [
+        {
+          path: 'agencyId brandName',
+          select:
+            'name email image description location role brandName logo latitude longitude',
+        },
+        { path: 'category', select: 'category' },
+      ],
+    },
+    {
+      path: 'userId',
+      select: 'name email image description location role ',
+    },
+  ]);
 
   if (!reserve) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'No Reserve Data found');
@@ -407,7 +523,6 @@ const getSingleReserveData = async (id: string) => {
   };
 };
 
-
 // Update Reserve Details
 const updateReserveDetails = async (id: string, progressStatus: string) => {
   const updatedData: any = await ReserveDetailsModel.findByIdAndUpdate(
@@ -446,84 +561,124 @@ const deleteReserveDetails = async (id: string) => {
   return deletedData;
 };
 
-// agency statistics
 const getReserveStatistics = async () => {
-  // Get statistics for all order statuses with their counts and prices
-  const orderStats = await ReserveDetailsModel.aggregate([
+  // Get total orders excluding cancelled ones and calculate total price
+  const total = await ReserveDetailsModel.aggregate([
+    {
+      $match: { progressStatus: { $ne: 'Cancelled' } },
+    },
     {
       $lookup: {
         from: 'cars',
         localField: 'carId',
         foreignField: '_id',
-        as: 'carDetails',
+        as: 'carInfo',
       },
     },
+    { $unwind: '$carInfo' },
     {
       $group: {
-        _id: '$progressStatus',
-        count: { $sum: 1 },
-        totalAmount: {
-          $sum: {
-            $multiply: [
-              { $arrayElemAt: ['$carDetails.price', 0] },
-              {
-                $subtract: [
-                  {
-                    $divide: [
-                      {
-                        $subtract: [
-                          { $toDate: '$endDate' },
-                          { $toDate: '$startDate' },
-                        ],
-                      },
-                      1000 * 60 * 60 * 24,
-                    ],
-                  },
-                  0,
-                ],
-              },
-            ],
-          },
-        },
+        _id: null,
+        totalPrice: { $sum: '$carInfo.price' },
+        totalOrders: { $sum: 1 },
       },
     },
   ]);
 
-  // Transform the results into the desired format
-  const statistics = orderStats.reduce((acc: any, stat) => {
-    acc[stat._id.toLowerCase() + 'Order'] = {
-      count: stat.count,
-      amount: stat.totalAmount.toFixed(2),
-    };
-    return acc;
-  }, {});
+  const totalPrice = total[0]?.totalPrice || 0;
+  const totalOrders = total[0]?.totalOrders || 0;
 
-  // Calculate total orders and amount
-  const totalStats = orderStats.reduce(
-    (acc, stat) => {
-      acc.count += stat.count;
-      acc.amount += stat.totalAmount;
-      return acc;
+  // Get total orders in progress
+  const result = await ReserveDetailsModel.aggregate([
+    {
+      $match: { progressStatus: 'InProgress' },
     },
-    { count: 0, amount: 0 }
-  );
+    {
+      $lookup: {
+        from: 'cars',
+        localField: 'carId',
+        foreignField: '_id',
+        as: 'carInfo',
+      },
+    },
+    { $unwind: '$carInfo' },
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: '$carInfo.price' },
+        totalOrders: { $sum: 1 },
+      },
+    },
+  ]);
 
-  // Ensure requestOrder exists even if there are no requests
-  if (!statistics.requestOrder) {
-    statistics.requestOrder = {
-      count: 0,
-      amount: '0.00',
-    };
-  }
+  const totalPrices = result[0]?.totalPrice || 0;
+  const totalOrdersInProgress = result[0]?.totalOrders || 0;
+
+  // Get active orders (InProgress or Assigned)
+  const activeOrder = await ReserveDetailsModel.aggregate([
+    {
+      $match: {
+        progressStatus: { $in: ['InProgress', 'Assigned'] },
+      },
+    },
+    {
+      $lookup: {
+        from: 'cars', 
+        localField: 'carId',
+        foreignField: '_id',
+        as: 'carInfo',
+      },
+    },
+    { $unwind: '$carInfo' },
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: '$carInfo.price' },
+        totalOrders: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const totalActiveOrderPrice = activeOrder[0]?.totalPrice || 0;
+  const totalActiveOrders = activeOrder[0]?.totalOrders || 0;
+
+  // Get successfully delivered orders and calculate the total amount
+  const deliveredOrders = await paymentVerificationModel.aggregate([
+    {
+      $match: { status: 'successful' },
+    },
+    {
+      $group: {
+        _id: null,
+        totalAmount: { $sum: '$amount' },
+        totalDeliveredOrders: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const totalAmount = deliveredOrders[0]?.totalAmount || 0;
+  const totalDeliveredOrders = deliveredOrders[0]?.totalDeliveredOrders || 0;
 
   return {
     totalOrder: {
-      count: totalStats.count,
-      amount: totalStats.amount.toFixed(2),
+      count: totalOrders,
+      totalPrice: totalPrice.toFixed(2),
     },
-    ...statistics,
+    receivedOrder: {
+      count: totalOrdersInProgress,
+      totalPrice: totalPrices.toFixed(2),
+    },
+    activeOrder: {
+      count: totalActiveOrders,
+      totalPrice: totalActiveOrderPrice.toFixed(2),
+    },
+    deliveredOrder: {
+      count: totalDeliveredOrders,
+      totalAmount: totalAmount.toFixed(2),
+    },
   };
 };
+
 
 export const ReserveDetailsServices = {
   createReserveDetails,
