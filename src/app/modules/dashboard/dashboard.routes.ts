@@ -12,6 +12,8 @@ router.get("/total-earning",auth(USER_ROLES.SUPER_ADMIN), DashboardController.to
 // total earning by month
 router.get("/total-earning-by-month",auth(USER_ROLES.SUPER_ADMIN), DashboardController.totalEarningByMonth)
 
+// total earning by user 
+router.get("/total-earning-by-user",auth(USER_ROLES.SUPER_ADMIN), DashboardController.totalUserEarning)
 
 
 // total agency
@@ -21,4 +23,6 @@ router.get("/single-user/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.
 router.delete("/delete-user/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.deleteUserFromDB)
 router.get("/single-agency/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.getSingleAgency)
 router.delete("/delete-agency/:id",auth(USER_ROLES.SUPER_ADMIN), DashboardController.deleteAgencyFromDB)
+
+
 export const DashboardRoutes = router

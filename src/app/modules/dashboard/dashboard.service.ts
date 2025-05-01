@@ -3,14 +3,19 @@ import ApiError from '../../../errors/ApiError';
 import { User } from '../user/user.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { ReserveDetailsModel } from '../reservedetails/reservedetails.model';
+import { paymentVerificationModel } from '../paymentVerification/paymentVerification.model';
 
 // dashboard statistics
 const dashboardStatisticsIntoDB = async () => {
   const totalUser = await User.countDocuments({ role: 'USER' });
   const totalAgency = await User.countDocuments({ role: 'AGENCY' });
+  const totalEarning = await paymentVerificationModel.find();
+  const earningPerTransaction = 10;
+  const calculatedTotalEarning = totalEarning.length * earningPerTransaction;
   return {
     totalUser,
     totalAgency,
+    totalEarning: calculatedTotalEarning,
   };
 };
 
@@ -241,6 +246,30 @@ const deleteAgencyFromDB = async (id: string) => {
   return result;
 };
 
+const totalUserEarning = async (query: Record<string, unknown>) => {
+  const userQuery = paymentVerificationModel.find().populate('userId');
+
+  const userBuilder = new QueryBuilder(userQuery, query)
+    .search(['userId.email'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await userBuilder.modelQuery;
+  const paginationInfo = await userBuilder.getPaginationInfo();
+  if (!result.length) {
+    return {
+      meta: paginationInfo,
+      data: [],
+    };
+  }
+  return {
+    meta: paginationInfo,
+    data: result
+  };
+};
+
 export const DashboardService = {
   dashboardStatisticsIntoDB,
   getRecentUserForDashboard,
@@ -252,4 +281,5 @@ export const DashboardService = {
   deleteAgencyFromDB,
   totalEarningFromDB,
   totalEarningByMonthFromDB,
+  totalUserEarning,
 };

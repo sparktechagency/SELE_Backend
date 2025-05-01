@@ -54,6 +54,9 @@ const reserveDetailsSchema = new Schema<IReserveDetails>({
     type: Number,
     default: 10,
   },
+},
+{
+  timestamps: true,
 });
 
 export const ReserveDetailsModel = model<IReserveDetails>(
