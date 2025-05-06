@@ -294,7 +294,7 @@ const getReceivedAInProgressAndAssignedReserveData = async (
 
   const filter: any = {
     progressStatus: { $in: allowedStatuses },
-    userId: userId, // ✅ Filter only by logged-in user's bookings
+    userId: userId,
   };
 
   const data = await ReserveDetailsModel.find(filter)

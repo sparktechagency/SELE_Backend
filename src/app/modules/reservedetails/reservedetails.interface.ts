@@ -16,4 +16,14 @@ export type IReserveDetails = {
   agencyId?:Types.ObjectId;
   trxId?:string;
   appCharge?:number;
+  // ! recent added
+  residenceCountry?:string;
+  primaryEmail?:string;
+  alternativeEmail?:string;
+  addressOne?:string;
+  addressTwo?:string;
+  zipCode?:string;
+  licenseNumber?:string;
+  driverLicense?:string;
+  ageFirstLicense?:string; //TODO: need to discuss about this field also two residence country why show this field two time?
 };
