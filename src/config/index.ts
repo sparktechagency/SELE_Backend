@@ -31,4 +31,9 @@ export default {
     webhookSecret: process.env.WEBHOOK_SECRET,
     paymentSuccess: process.env.STRIPE_PAYMENT_SUCCESS_LINK,
   },
+  bonza: {
+    bonzahAPIHOST: process.env.BONZAH_API_HOST,
+    bonzahUserName: process.env.BONZAH_USERNAME,
+    bonzahPassword: process.env.BONZAH_PASSWORD,
+  },
 };

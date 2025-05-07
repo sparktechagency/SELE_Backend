@@ -27,6 +27,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       role: result.role,
+      bonzaToken: result.bonzaToken
     },
 
   });

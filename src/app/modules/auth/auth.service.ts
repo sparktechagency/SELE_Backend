@@ -16,6 +16,8 @@ import cryptoToken from '../../../util/cryptoToken';
 import generateOTP from '../../../util/generateOTP';
 import { ResetToken } from '../resetToken/resetToken.model';
 import { User } from '../user/user.model';
+import { getBonzahToken } from '../../../util/getBonzahToken';
+import { USER_ROLES } from '../../../enums/user';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -69,8 +71,12 @@ const loginUserFromDB = async (payload: ILoginData) => {
     config.jwt.jwt_refresh as Secret,
     config.jwt.jwt_refresh_expire_in as string
   );
+  let bonzaToken = null;
+  if (isExistUser.role === USER_ROLES.USER) {
+    bonzaToken = await getBonzahToken();
+  }
 
-  return { accessToken, refreshToken, role: isExistUser?.role };
+  return { accessToken, refreshToken, role: isExistUser?.role, bonzaToken };
 };
 
 //forget password
@@ -301,7 +307,7 @@ const deleteUserToDB = async (user: JwtPayload, password: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Password doesn't match!");
   }
   if (isExistUser.isDeleted) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "User already deleted!");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User already deleted!');
   }
   const result = await User.findOneAndUpdate(
     { _id: user.id },
