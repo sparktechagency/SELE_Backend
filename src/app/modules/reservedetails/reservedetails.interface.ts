@@ -25,5 +25,5 @@ export type IReserveDetails = {
   zipCode?:string;
   licenseNumber?:string;
   driverLicense?:string;
-  ageFirstLicense?:string; //TODO: need to discuss about this field also two residence country why show this field two time?
+  ageFirstLicense?:string;
 };

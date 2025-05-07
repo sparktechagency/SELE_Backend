@@ -71,10 +71,11 @@ const loginUserFromDB = async (payload: ILoginData) => {
     config.jwt.jwt_refresh as Secret,
     config.jwt.jwt_refresh_expire_in as string
   );
-  let bonzaToken = null;
+  let bonzaTokenPromise: Promise<string | null> = Promise.resolve(null);
   if (isExistUser.role === USER_ROLES.USER) {
-    bonzaToken = await getBonzahToken();
+    bonzaTokenPromise = getBonzahToken();
   }
+  const bonzaToken = await bonzaTokenPromise;
 
   return { accessToken, refreshToken, role: isExistUser?.role, bonzaToken };
 };
