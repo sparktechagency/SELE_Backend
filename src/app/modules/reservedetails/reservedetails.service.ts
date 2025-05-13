@@ -97,9 +97,10 @@ const getAllReserveData = async (
 
       // Price calculations
       const pricePerDay = (reserve?.carId as any)?.price;
+      const insurance = Number((reserve?.carId as any)?.insuranceAmount) || 0;
       const price = pricePerDay * Day;
       const appCharge = 10;
-      const finalTotal = +(price + appCharge).toFixed(2);
+      const finalTotal = +(price + appCharge + insurance).toFixed(2);
 
       // Rating aggregation
       const [ratingAggregation] = await Rating.aggregate([
@@ -324,9 +325,10 @@ const getReceivedAInProgressAndAssignedReserveData = async (
 
       // Price calculation
       const pricePerDay = (reserve?.carId as any)?.price || 0;
+      const insurance = Number((reserve?.carId as any)?.insuranceAmount) || 0;
       const price = pricePerDay * Day;
       const appCharge = 10;
-      const finalTotal = +(price + appCharge).toFixed(2);
+      const finalTotal = +(price + appCharge + insurance).toFixed(2);
 
       // Ratings aggregation
       const [ratingAggregation] = await Rating.aggregate([
@@ -465,9 +467,10 @@ const getSingleReserveData = async (id: string) => {
 
   // Price calculations
   const pricePerDay = (reserve?.carId as any)?.price;
+  const insurance = Number((reserve?.carId as any)?.insuranceAmount) || 0;
   const price = pricePerDay * Day;
   const appCharge = 10;
-  const finalTotal = +(price + appCharge).toFixed(2);
+  const finalTotal = +(price + appCharge + insurance).toFixed(2);
 
   // Rating aggregation
   const [ratingAggregation] = await Rating.aggregate([
@@ -623,7 +626,7 @@ const getReserveStatistics = async () => {
     },
     {
       $lookup: {
-        from: 'cars', 
+        from: 'cars',
         localField: 'carId',
         foreignField: '_id',
         as: 'carInfo',
@@ -678,7 +681,6 @@ const getReserveStatistics = async () => {
     },
   };
 };
-
 
 export const ReserveDetailsServices = {
   createReserveDetails,

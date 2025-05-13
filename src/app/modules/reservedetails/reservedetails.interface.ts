@@ -26,4 +26,5 @@ export type IReserveDetails = {
   licenseNumber?:string;
   driverLicense?:string;
   ageFirstLicense?:string;
+  insuranceAmount?:string;
 };
