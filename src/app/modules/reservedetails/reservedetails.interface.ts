@@ -27,4 +27,5 @@ export type IReserveDetails = {
   driverLicense?:string;
   ageFirstLicense?:string;
   insuranceAmount?:string;
+  isInsured?: boolean;
 };

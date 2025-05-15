@@ -89,6 +89,10 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    isInsured: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
