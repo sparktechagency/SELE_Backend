@@ -50,13 +50,10 @@ const getAllNotificationsIntoDB = async (
 
   const notificationQuery = new QueryBuilder(baseQuery, query);
 
-  // Apply query modifications
   notificationQuery.search(['title', 'message']).filter().sort().paginate();
 
-  // Finally execute the query
   const notifications = await notificationQuery.modelQuery;
 
-  // Optional: Pagination info jodi dorkar hoy
   const paginationInfo = await notificationQuery.getPaginationInfo();
 
   return {
