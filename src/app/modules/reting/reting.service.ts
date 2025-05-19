@@ -5,11 +5,20 @@ import { Rating } from './reting.model';
 import { IPaginationOptions } from '../../../types/pagination';
 import { paginationHelper } from '../../../helpers/paginationHelper';
 import { Types } from 'mongoose';
+import { JwtPayload } from 'jsonwebtoken';
+import { USER_ROLES } from '../../../enums/user';
 
 const createRatingIntoDB = async (
   payload: IRating,
   user: any
 ): Promise<IRating | null> => {
+  console.log('user==============>', user);
+  if (user.role === USER_ROLES.USER && !payload.carId) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Car ID is required for user reviews'
+    );
+  }
   const result = await Rating.create({ ...payload, userId: user.id });
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Rating');
@@ -26,7 +35,7 @@ const getAllRatingFromDB = async (
 
   // Validate carId format
   if (!Types.ObjectId.isValid(carId)) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid car ID format");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid car ID format');
   }
 
   const query = { carId: new Types.ObjectId(carId) };
@@ -38,14 +47,13 @@ const getAllRatingFromDB = async (
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 }),
-      
-    Rating.countDocuments(query)
-  ]);
 
+    Rating.countDocuments(query),
+  ]);
 
   return {
     meta: { total, page, limit },
-    data: result
+    data: result,
   };
 };
 
@@ -101,10 +109,27 @@ const deleteRatingFromDB = async (id: string): Promise<IRating | null> => {
   return result;
 };
 
+const getAllUserReviewFromDBBaseOnUserDetails = async (user: JwtPayload) => {
+  if (!user.id) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User ID not found');
+  }
+  const result = await Rating.find({ userId: user.id });
+  console.log(result);
+  // .populate({
+  //   path: 'carId',
+  //   select: 'title carImage',
+  // });
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to get Rating');
+  }
+  return result;
+};
+
 export const RatingServices = {
   createRatingIntoDB,
   getAllRatingFromDB,
   getSingleRatingFromDB,
   updateRatingIntoDB,
   deleteRatingFromDB,
+  getAllUserReviewFromDBBaseOnUserDetails,
 };

@@ -64,10 +64,24 @@ const deleteRating = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllUserReview = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+  const result = await RatingServices.getAllUserReviewFromDBBaseOnUserDetails(
+    user
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'All User Review fetched successfully',
+    data: result,
+  });
+});
+
 export const RatingController = {
   createRating,
   getAllRating,
   getSingleRating,
   updateRating,
   deleteRating,
+  getAllUserReview,
 };

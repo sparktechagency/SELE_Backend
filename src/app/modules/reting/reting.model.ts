@@ -11,13 +11,15 @@ const RatingSchema = new Schema<IRating, RatingModel>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    userProfile: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
     rating: {
       type: Number,
-      required: true,
     },
     review: {
       type: String,
-      required: true,
     },
   },
   {
