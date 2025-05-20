@@ -10,8 +10,8 @@ router.post(
   RatingController.createRating
 );
 router.get(
-  '/my-review',
-  auth(USER_ROLES.USER, USER_ROLES.AGENCY, USER_ROLES.SUPER_ADMIN),
+  '/user-review/:userId',
+  // auth(USER_ROLES.USER, USER_ROLES.AGENCY, USER_ROLES.SUPER_ADMIN),
   RatingController.getAllUserReview
 );
 

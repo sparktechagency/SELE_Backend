@@ -7,6 +7,7 @@ import { paginationHelper } from '../../../helpers/paginationHelper';
 import { Types } from 'mongoose';
 import { JwtPayload } from 'jsonwebtoken';
 import { USER_ROLES } from '../../../enums/user';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 const createRatingIntoDB = async (
   payload: IRating,
@@ -109,20 +110,35 @@ const deleteRatingFromDB = async (id: string): Promise<IRating | null> => {
   return result;
 };
 
-const getAllUserReviewFromDBBaseOnUserDetails = async (user: JwtPayload) => {
-  if (!user.id) {
+const getAllUserReviewFromDBBaseOnUserDetails = async (
+  userId: string,
+  query: Record<string, any> = {}
+) => {
+  if (!userId) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User ID not found');
   }
-  const result = await Rating.find({ userId: user.id });
-  console.log(result);
-  // .populate({
-  //   path: 'carId',
-  //   select: 'title carImage',
-  // });
+
+  // Create a filter that matches either userId or userProfile
+  const filter = {
+    $or: [{ userId: userId }, { userProfile: userId }],
+  };
+
+  // Use the filter directly in the find method
+  const queryBuilder = new QueryBuilder(Rating.find(filter), query);
+  const result = await queryBuilder
+    .filter()
+    .sort()
+    .paginate()
+    .fields()
+    .populate(['userProfile'], {
+      userProfile: 'name email image createdAt updatedAt',
+    }).modelQuery;
+  const pagination = await queryBuilder.getPaginationInfo();
+
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to get Rating');
   }
-  return result;
+  return { result, pagination };
 };
 
 export const RatingServices = {

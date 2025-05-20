@@ -65,15 +65,17 @@ const deleteRating = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllUserReview = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user;
+  const { userId } = req.params;
   const result = await RatingServices.getAllUserReviewFromDBBaseOnUserDetails(
-    user
+    userId,
+    req.query
   );
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'All User Review fetched successfully',
-    data: result,
+    meta: result.pagination,
+    data: result.result,
   });
 });
 
