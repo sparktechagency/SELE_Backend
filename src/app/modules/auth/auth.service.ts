@@ -294,6 +294,7 @@ const changePasswordToDB = async (
   await User.findOneAndUpdate({ _id: user.id }, updateData, { new: true });
 };
 
+
 // delete user
 const deleteUserToDB = async (user: JwtPayload, password: string) => {
   const isExistUser = await User.findById(user.id).select('+password');
