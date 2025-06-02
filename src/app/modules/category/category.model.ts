@@ -1,10 +1,13 @@
 import { Schema, model } from 'mongoose';
-import { ICategory } from './category.interface'; 
-import { category } from '../../../enums/category';
+import { ICategory } from './category.interface';
 
-const categorySchema = new Schema<ICategory>({
-  // @ts-ignore
-  category: { type: String, enum: Object.values(category), required: true },
-});
+const categorySchema = new Schema<ICategory>(
+  {
+    category: { type: String, required: true },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 export const Category = model<ICategory>('Category', categorySchema);

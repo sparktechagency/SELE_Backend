@@ -11,53 +11,58 @@ import { USER_ROLES } from '../../../enums/user';
 const router = express.Router();
 // auth agency
 router.post(
-    '/',
-    fileUploadHandler(), // Middleware for handling file uploads
-    async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            // Check if the car image is uploaded
-            if (!req.files || !(req.files as { [fieldname: string]: Express.Multer.File[] })['carImage']) {
-                return sendResponse(res, {
-                    statusCode: 400,
-                    success: false,
-                    message: 'No car image uploaded',
-                });
-            }
+  '/',
+  fileUploadHandler(), // Middleware for handling file uploads
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Check if the car image is uploaded
+      if (
+        !req.files ||
+        !(req.files as { [fieldname: string]: Express.Multer.File[] })[
+          'carImage'
+        ]
+      ) {
+        return sendResponse(res, {
+          statusCode: 400,
+          success: false,
+          message: 'No car image uploaded',
+        });
+      }
 
-            // @ts-ignore
-            const carImage = getSingleFilePath(req.files, 'carImage');
+      // @ts-ignore
+      const carImage = getSingleFilePath(req.files, 'carImage');
 
-            if (!carImage) {
-                return sendResponse(res, {
-                    statusCode: 400,
-                    success: false,
-                    message: 'Car image path is not defined',
-                });
-            }
+      if (!carImage) {
+        return sendResponse(res, {
+          statusCode: 400,
+          success: false,
+          message: 'Car image path is not defined',
+        });
+      }
 
-            // Map the car data with the correct fields
-            req.body = {
-                ...req.body,
-                carImage,
-                carSeatsNumber: Number(req.body.carSeatsNumber),
-                price: Number(req.body.price),
-                ProtectionPlan: Array.isArray(req.body.protectionPlan)
-                    ? req.body.protectionPlan
-                    : JSON.parse(req.body.protectionPlan || '[]'),
-            };
+      // Map the car data with the correct fields
+      req.body = {
+        ...req.body,
+        carImage,
+        carSeatsNumber: Number(req.body.carSeatsNumber),
+        price: Number(req.body.price),
+        ProtectionPlan: Array.isArray(req.body.protectionPlan)
+          ? req.body.protectionPlan
+          : JSON.parse(req.body.protectionPlan || '[]'),
+      };
 
-            // Proceed to the next middleware or controller
-            next();
-        } catch (error) {
-            sendResponse(res, {
-                statusCode: 500,
-                success: false,
-                message: 'Error while uploading car image',
-            });
-        }
-    },
-    auth(USER_ROLES.AGENCY),  // Protect route with the authorization middleware
-    CarsController.createCar  // Controller function to create the car
+      // Proceed to the next middleware or controller
+      next();
+    } catch (error) {
+      sendResponse(res, {
+        statusCode: 500,
+        success: false,
+        message: 'Error while uploading car image',
+      });
+    }
+  },
+  auth(USER_ROLES.AGENCY),
+  CarsController.createCar
 );
 
 // get all cars by agency id
