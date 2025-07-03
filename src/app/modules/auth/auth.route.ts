@@ -60,4 +60,10 @@ router.post(
   AuthController.newAccessToken
 );
 
+
+router.delete(
+  '/public/delete-user',
+  AuthController.deleteUserByEmailAndPassword
+)
+
 export const AuthRoutes = router;

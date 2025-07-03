@@ -127,6 +127,20 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete user with email and password
+const deleteUserByEmailAndPassword = catchAsync(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const result = await AuthService.deleteUserByEmailAndPassword(email, password);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Account Deleted successfully",
+    data: result,
+  });
+});
+
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -136,5 +150,6 @@ export const AuthController = {
   deleteUser,
   resendOtp,
   getSingleUser,
-  newAccessToken
+  newAccessToken,
+  deleteUserByEmailAndPassword
 };

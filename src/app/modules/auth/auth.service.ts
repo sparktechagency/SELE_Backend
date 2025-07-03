@@ -18,6 +18,7 @@ import { ResetToken } from '../resetToken/resetToken.model';
 import { User } from '../user/user.model';
 import { getBonzahToken } from '../../../util/getBonzahToken';
 import { USER_ROLES } from '../../../enums/user';
+import { IUser } from '../user/user.interface';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -44,10 +45,10 @@ const loginUserFromDB = async (payload: ILoginData) => {
 
   //check user status
   // @ts-ignore
-  if (isExistUser.status === 'delete') {
+  if (isExistUser.isDeleted) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'You don’t have permission to access this content.It looks like your account has been deactivated.'
+      'You don’t have permission to access this content.It looks like your account has been deactivated. Please contact support for further assistance.'
     );
   }
 
@@ -353,6 +354,27 @@ const getSingleUserFromDB = async (user: JwtPayload) => {
   return result;
 };
 
+
+const deleteUserByEmailAndPassword = async (email: string, password: string) => {
+  const isExistUser = await User.findOne({ email }).select("+password");
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  //check match password
+  if (
+    password &&
+    !(await User.isMatchPassword(password, isExistUser.password))
+  ) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Password is incorrect");
+  }
+  const updateUser = await User.findByIdAndUpdate(isExistUser._id, { isDeleted: true });
+  if (!updateUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+  return;
+};
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -363,4 +385,5 @@ export const AuthService = {
   resendOTP,
   getSingleUserFromDB,
   newAccessTokenToUser,
+  deleteUserByEmailAndPassword
 };
