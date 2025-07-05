@@ -14,8 +14,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   try {
     // Use raw request body for verification
     event = stripe.webhooks.constructEvent(
-      req.body,
-      req.headers['stripe-signature'] as string,
+      req.body,      req.headers['stripe-signature'] as string,
       config.stripe.webhookSecret as string
     );
   } catch (error) {

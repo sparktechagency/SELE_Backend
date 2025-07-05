@@ -30,8 +30,8 @@ const createCarPaymentSession = catchAsync(
         },
       ],
       mode: 'payment',
-      success_url: `http://localhost:3000/success`,
-      cancel_url: `http://localhost:3000/cancel`,
+      success_url: `https://admin.selerental.com/payment-success`,
+      cancel_url: `https://admin.selerental.com/cancel`,
       metadata: { userId, carId, reserveId },
     });
 
@@ -90,7 +90,7 @@ const createAccountIntoStripe = catchAsync(
       business_profile: {
         mcc: 7299,
         product_description: 'Car rental services',
-        url: 'https://yourplatform.com',
+        url: 'https://admin.selerental.com/bank-account-create',
       },
     });
     if (!account) {
@@ -100,8 +100,8 @@ const createAccountIntoStripe = catchAsync(
     // Create an account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: 'https://10.0.70.188:5003/onboarding-refresh',
-      return_url: 'https://10.0.70.188:5003/onboarding-success',
+      refresh_url: 'https://admin.selerental.com/bank-account-create',
+      return_url: 'https://admin.selerental.com/bank-account-create',
       type: 'account_onboarding',
     });
     const updateAccount = await User.findByIdAndUpdate(

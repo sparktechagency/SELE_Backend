@@ -59,8 +59,8 @@ const createOneTimePackage = async (req: Request, res: Response) => {
         quantity: item.quantity,
       })),
       mode: 'payment',
-      success_url: 'http://success:6009/payment/success',
-      cancel_url: 'http://success:6009/payment/cancel',
+      success_url: 'https://admin.selerental.com/payment-success',
+      cancel_url: 'https://admin.selerental.com/payment-cancel',
     });
 
     // Stripe returns amount_total in cents
