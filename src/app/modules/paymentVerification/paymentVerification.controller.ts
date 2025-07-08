@@ -73,6 +73,7 @@ const createAccountIntoStripe = catchAsync(
         'You already connected your bank on Stripe.'
       );
     }
+    console.log("Existing user =====>>>>",existingUser)
     // @ts-ignore
     const account = await stripe.accounts.create({
       type: 'express',
