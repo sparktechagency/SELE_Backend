@@ -1,7 +1,8 @@
 import path from 'path';
 import DailyRotateFile from 'winston-daily-rotate-file';
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, label, printf } = format;
+import { createLogger, format, transports } from 'winston';
+
+const { combine, timestamp, label, printf, colorize } = format;
 
 const myFormat = printf(
   ({
@@ -13,53 +14,53 @@ const myFormat = printf(
     level: string;
     message: string;
     label: string;
-    timestamp: Date;
+    timestamp: string;
   }) => {
     const date = new Date(timestamp);
-    const hour = date.getHours();
-    const minutes = date.getMinutes();
-    const seconds = date.getSeconds();
+    const formattedDate = date.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const formattedTime = date.toLocaleTimeString(); // HH:MM:SS
 
-    return `${date.toDateString()} ${hour}:${minutes}:${seconds} [${label}] ${level}: ${message}`;
+    return `[${label}] 🚗 ${level.toUpperCase()} | 📅 ${formattedDate} ⏰ ${formattedTime} | 📝 ${message}`;
   }
 );
 
+// ✅ Common transport options
+const successTransport = new DailyRotateFile({
+  filename: path.join(process.cwd(), 'winston', 'success', '%DATE%-success.log'),
+  datePattern: 'DD-MM-YYYY-HH',
+  maxSize: '20m',
+  maxFiles: '1d',
+});
+
+const errorTransport = new DailyRotateFile({
+  filename: path.join(process.cwd(), 'winston', 'error', '%DATE%-error.log'),
+  datePattern: 'DD-MM-YYYY-HH',
+  maxSize: '20m',
+  maxFiles: '1d',
+});
+
+// ✅ Success Logger (info, warn, etc.)
 const logger = createLogger({
   level: 'info',
-  format: combine(label({ label: 'SERVER-NAME' }), timestamp(), myFormat),
-  transports: [
-    new transports.Console(),
-    new DailyRotateFile({
-      filename: path.join(
-        process.cwd(),
-        'winston',
-        'success',
-        '%DATE%-success.log'
-      ),
-      datePattern: 'DD-MM-YYYY-HH',
-      maxSize: '20m',
-      maxFiles: '1d',
-    }),
-  ],
+  format: combine(
+    colorize({ all: true }),
+    label({ label: 'CarRentalService' }),
+    timestamp(),
+    myFormat
+  ),
+  transports: [new transports.Console(), successTransport],
 });
 
+// ❌ Error Logger
 const errorLogger = createLogger({
   level: 'error',
-  format: combine(label({ label: 'SERVER-NAME' }), timestamp(), myFormat),
-  transports: [
-    new transports.Console(),
-    new DailyRotateFile({
-      filename: path.join(
-        process.cwd(),
-        'winston',
-        'error',
-        '%DATE%-error.log'
-      ),
-      datePattern: 'DD-MM-YYYY-HH',
-      maxSize: '20m',
-      maxFiles: '1d',
-    }),
-  ],
+  format: combine(
+    colorize({ all: true }),
+    label({ label: 'CarRentalService' }),
+    timestamp(),
+    myFormat
+  ),
+  transports: [new transports.Console(), errorTransport],
 });
 
-export { errorLogger, logger };
+export { logger, errorLogger };

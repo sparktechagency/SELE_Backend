@@ -7,7 +7,6 @@ import { IPaginationOptions } from '../../../types/pagination';
 import { sendNotifications } from '../../../helpers/notificationSender';
 import { Rating } from '../reting/reting.model';
 import { CarsModel } from '../cars/cars.model';
-import { progressStatus } from '../../../enums/progressStatus';
 import { paymentVerificationModel } from '../paymentVerification/paymentVerification.model';
 
 // create reserve Data

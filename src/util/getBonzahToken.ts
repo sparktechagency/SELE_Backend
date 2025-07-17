@@ -10,7 +10,6 @@ export const getBonzahToken = async () => {
         pwd: config.bonza.bonzahPassword,
       }
     );
-    console.log(response.data);
 
     if (response.data?.data?.token) {
       return response.data.data.token;
