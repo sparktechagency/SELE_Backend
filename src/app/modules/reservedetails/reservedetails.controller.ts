@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ReserveDetailsServices } from './reservedetails.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
+import { getMultipleFilesPath } from '../../../shared/getFilePath';
 
 const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
   const user = req.user.id;
@@ -47,60 +48,27 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getSpecificReserveDetails = catchAsync(
-  async (req: Request, res: Response) => {
-    const options = {
-      page: Number(req.query.page) || 1,
-      limit: Number(req.query.limit) || 10,
-      sortBy: (req.query.sortBy as string) || 'createdAt',
-      sortOrder: (req.query.sortOrder as string) || 'desc',
-    };
+const getSpecificReserveDetails = catchAsync(async (req, res) => {
+  // Tumar query parameters like page, limit, sortBy, searchTerm etc ekhane thakbe
+  const queryParams = req.query;
 
-    const data =
-      await ReserveDetailsServices.getReceivedAInProgressAndAssignedReserveData(
-        {
-          page: options.page,
-          limit: options.limit,
-          sortBy: options.sortBy,
-          sortOrder: options.sortOrder as 'asc' | 'desc',
-        },
-        req.user.id
-      );
+  // userId auth middleware theke pabe
+  const userId = req.user.id;
 
-    const appCharges = data.data?.[0]?.appCharge ?? 10;
+  const data =
+    await ReserveDetailsServices.getReceivedAInProgressAndAssignedReserveData(
+      queryParams,
+      userId
+    );
 
-    const processedData = data.data.map((reservation: any) => {
-      const startDate = new Date(reservation.startDate);
-      const endDate = new Date(reservation.endDate);
-
-      // Calculate number of days
-      const timeDiff = endDate.getTime() - startDate.getTime();
-      const days = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
-
-      // Calculate total cost
-      const dailyPrice = reservation?.carId?.price;
-      const rentalCost = dailyPrice * days;
-      const totalCost = rentalCost + appCharges;
-
-      return {
-        ...reservation,
-        Day: days,
-        price: dailyPrice,
-        appCharge: appCharges,
-        finalTotal: totalCost,
-      };
-    });
-
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: 'Successfully retrieved specific reserve details',
-      data: processedData,
-      // @ts-ignore
-      pagination: data.meta,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Successfully retrieved specific reserve details',
+    meta: data.meta,
+    data: data.data,
+  });
+});
 
 const getSpecificReserveHistory = catchAsync(
   async (req: Request, res: Response) => {
@@ -169,25 +137,27 @@ const getSingleReserveDetails = catchAsync(
 
 const updateReserveDetails = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { progressStatus } = req.body;
+  const data = req.body;
 
-  if (!progressStatus) {
-    return sendResponse(res, {
-      statusCode: 400,
-      success: false,
-      message: 'Progress status is required',
-    });
+  // ⬇ Optional file handling
+  // @ts-ignore
+  const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense');
+  // @ts-ignore
+  const yourID = getMultipleFilesPath(req.files, 'yourID');
+
+  if (drivingLicense?.length) {
+    data.drivingLicense = drivingLicense;
+  }
+  if (yourID?.length) {
+    data.yourID = yourID;
   }
 
-  const result = await ReserveDetailsServices.updateReserveDetails(
-    id,
-    progressStatus
-  );
+  const result = await ReserveDetailsServices.updateReserveDetails(id, data);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Successfully Update Reserve Details',
+    message: 'Successfully Updated Reserve Details',
     data: result,
   });
 });

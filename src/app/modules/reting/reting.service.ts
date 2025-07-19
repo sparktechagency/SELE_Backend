@@ -13,7 +13,6 @@ const createRatingIntoDB = async (
   payload: IRating,
   user: any
 ): Promise<IRating | null> => {
-  console.log('user==============>', user);
   if (user.role === USER_ROLES.USER && !payload.carId) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,

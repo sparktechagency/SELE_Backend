@@ -31,7 +31,7 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: [String],
       required: true,
     },
-    progressStatus: {
+    payload: {
       type: Schema.Types.Mixed,
       enum: ['Request', 'InProgress', 'Assigned', 'Delivered', 'Cancelled'],
       required: true,

@@ -7,7 +7,7 @@ export type IReserveDetails = {
   endDate: string;
   drivingLicense: string[];
   yourID: string[];
-  progressStatus: progressStatus;
+  payload: progressStatus;
   userId?: Types.ObjectId;
   orderId?: String;
   createdAt?: Date;

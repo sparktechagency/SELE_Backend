@@ -78,28 +78,6 @@ router.delete('/:id', ReserveDetailsController.deleteReserveDetails);
 router.patch(
   '/:id',
   fileUploadHandler(),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // Check if the required files are uploaded for drivingLicense and yourID
-      // @ts-ignore
-      const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense');
-      // @ts-ignore
-      const yourID = getMultipleFilesPath(req.files, 'yourID');
-      req.body = {
-        ...req.body,
-        drivingLicense,
-        yourID,
-      };
-
-      next();
-    } catch (error) {
-      sendResponse(res, {
-        statusCode: 500,
-        success: false,
-        message: 'Error while uploading files',
-      });
-    }
-  },
   ReserveDetailsController.updateReserveDetails
 );
 export const reserveDetailsRoutes = router;

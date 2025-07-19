@@ -56,7 +56,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
           // Update ReserveDetailsModel with trxId
           await ReserveDetailsModel.findByIdAndUpdate(
             payment.reserveId,
-            { trxId: paymentIntentId?.toString(), progressStatus: 'Assigned' },
+            { trxId: paymentIntentId?.toString(), payload: 'Assigned' },
 
             { new: true }
           );

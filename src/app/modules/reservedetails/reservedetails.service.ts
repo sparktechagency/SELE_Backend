@@ -8,6 +8,10 @@ import { sendNotifications } from '../../../helpers/notificationSender';
 import { Rating } from '../reting/reting.model';
 import { CarsModel } from '../cars/cars.model';
 import { paymentVerificationModel } from '../paymentVerification/paymentVerification.model';
+import { User } from '../user/user.model';
+import { stripe } from '../../../config/stripe';
+import mongoose, { Types } from 'mongoose';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 // create reserve Data
 
@@ -98,6 +102,7 @@ const getAllReserveData = async (
       const pricePerDay = (reserve?.carId as any)?.price;
       const insurance = Number((reserve?.carId as any)?.insuranceAmount) || 0;
       const price = pricePerDay * Day;
+  
       const appCharge = 10;
       const finalTotal = +(price + appCharge + insurance).toFixed(2);
 
@@ -283,53 +288,62 @@ const getAllReserveData = async (
 // };
 
 const getReceivedAInProgressAndAssignedReserveData = async (
-  options: IPaginationOptions,
-  userId: string,
-  role?: string
+  query: Record<string, any>,
+  userId: string
 ) => {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelper.calculatePagination(options);
-
-  const allowedStatuses = ['Request', 'InProgress', 'Assigned'];
-
-  const filter: any = {
-    progressStatus: { $in: allowedStatuses },
-    userId: userId,
+  const baseFilter = {
+    userId: new mongoose.Types.ObjectId(userId),
+    payload: { $in: ['Request', 'InProgress', 'Assigned'] },
   };
 
-  const data = await ReserveDetailsModel.find(filter)
-    .populate({
-      path: 'carId',
-      populate: [
-        { path: 'brandName' },
-        { path: 'category' },
-        { path: 'agencyId' },
-      ],
-    })
-    .populate('userId')
-    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  const combinedQuery = {
+    ...query,
+    ...baseFilter,
+  };
 
-  const reserveDataWithRatings = await Promise.all(
+  const queryBuilder = new QueryBuilder(
+    ReserveDetailsModel.find(),
+    combinedQuery
+  );
+
+  queryBuilder
+    .filter()
+    .search(['carName', 'location'])
+    .sort()
+    .paginate()
+    .populate(['carId', 'userId'], {
+      carId: '',
+      userId: 'name email',
+    });
+
+  // nested populate for carId
+  queryBuilder.modelQuery.populate({
+    path: 'carId',
+    populate: [
+      { path: 'brandName' },
+      { path: 'category' },
+      { path: 'agencyId' },
+    ],
+  });
+
+  const data = await queryBuilder.modelQuery.lean();
+  const meta = await queryBuilder.getPaginationInfo();
+
+  const processed = await Promise.all(
     data.map(async reserve => {
       const carId = reserve?.carId?._id;
-
-      // Rental days calculation
       const start = new Date(reserve?.startDate);
       const end = new Date(reserve?.endDate);
-      const timeDiff = end.getTime() - start.getTime();
-      const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+      const Day = Math.ceil(
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
-      // Price calculation
-      const pricePerDay = (reserve?.carId as any)?.price || 0;
-      const insurance = Number((reserve?.carId as any)?.insuranceAmount) || 0;
+      const pricePerDay = reserve?.carId?.price || 0;
+      const insurance = Number(reserve?.carId?.insuranceAmount) || 0;
       const price = pricePerDay * Day;
       const appCharge = 10;
       const finalTotal = +(price + appCharge + insurance).toFixed(2);
 
-      // Ratings aggregation
       const [ratingAggregation] = await Rating.aggregate([
         { $match: { carId } },
         {
@@ -341,13 +355,8 @@ const getReceivedAInProgressAndAssignedReserveData = async (
         },
       ]);
 
-      const ratingPage = 1;
-      const ratingLimit = 10;
-      const ratingSkip = (ratingPage - 1) * ratingLimit;
-
       const reviews = await Rating.find({ carId })
-        .skip(ratingSkip)
-        .limit(ratingLimit)
+        .limit(10)
         .populate('userId', 'name email image')
         .lean();
 
@@ -358,16 +367,16 @@ const getReceivedAInProgressAndAssignedReserveData = async (
           totalRatings: ratingAggregation?.totalRatings || 0,
           reviews: {
             data: reviews.map(r => ({
-              userId: r?.userId,
-              rating: r?.rating,
-              review: r?.review,
-              createdAt: r?.createdAt,
+              userId: r.userId,
+              rating: r.rating,
+              review: r.review,
+              createdAt: r.createdAt,
             })),
             pagination: {
-              page: ratingPage,
-              limit: ratingLimit,
+              page: 1,
+              limit: 10,
               totalPages: Math.ceil(
-                (ratingAggregation?.totalRatings || 0) / ratingLimit
+                (ratingAggregation?.totalRatings || 0) / 10
               ),
             },
           },
@@ -385,15 +394,9 @@ const getReceivedAInProgressAndAssignedReserveData = async (
     })
   );
 
-  const total = await ReserveDetailsModel.countDocuments(filter);
-
   return {
-    meta: {
-      page,
-      limit,
-      total,
-    },
-    data: reserveDataWithRatings,
+    meta,
+    data: processed,
   };
 };
 
@@ -526,22 +529,69 @@ const getSingleReserveData = async (id: string) => {
 };
 
 // Update Reserve Details
-const updateReserveDetails = async (id: string, progressStatus: string) => {
+const updateReserveDetails = async (id: string, data: IReserveDetails) => {
+  const reserveDetails = await ReserveDetailsModel.findById(id).populate(
+    'carId'
+  );
+
+  if (!reserveDetails) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Reserve Details not found');
+  }
+
+  // 💥 Check: Only validate agencyId if status is Delivered
+  if (data.payload === 'Delivered') {
+    const user = await User.findById(
+      new Types.ObjectId(reserveDetails?.carId?.agencyId)
+    );
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+
+    const stripeAccountId = user.accountInformation?.stripeAccountId;
+    if (!stripeAccountId) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        'User has no connected Stripe account'
+      );
+    }
+
+    const totalDay = Math.ceil(
+      (new Date(reserveDetails?.endDate!).getTime() -
+        new Date(reserveDetails?.startDate!).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    const totalPrice = totalDay * reserveDetails?.carId?.price;
+
+    await stripe.transfers.create({
+      amount: totalPrice,
+      currency: user.accountInformation?.currency || 'usd',
+      destination: stripeAccountId,
+      description: `Payment to ${user.name} for delivered item`,
+    });
+
+  }
+
+  // 🛠 Update data
   const updatedData: any = await ReserveDetailsModel.findByIdAndUpdate(
     id,
-    { progressStatus },
-    { new: true }
+    data,
+    {
+      new: true,
+    }
   );
+
   if (!updatedData) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       'Failed to update Reserve Details'
     );
   }
+
   const notificationPayload = {
     userId: updatedData?.userId,
     title: 'Reserve Details In Progress',
-    message: `Your reserve details are in ${progressStatus}`,
+    message: `Your reserve details are in ${data.payload}`,
     type: 'reserve_details',
     filePath: 'reservation',
     referenceId: updatedData?._id,

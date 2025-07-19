@@ -296,7 +296,7 @@ const getSingleCarFromDB = async (id: string) => {
     },
   ]);
   if (!car.length) {
-    return []
+    return [];
   }
 
   return car[0];
@@ -337,7 +337,7 @@ const getCarBaseOnAgencyIdFromDB = async (
   const cars = await queryBuilder.modelQuery;
 
   if (!cars.length) {
-    return []
+    return [];
   }
 
   const paginationInfo = await queryBuilder.getPaginationInfo();
