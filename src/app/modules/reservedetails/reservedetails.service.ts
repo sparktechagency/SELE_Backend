@@ -409,7 +409,7 @@ const getReserveHistory = async (
     paginationHelper.calculatePagination(options);
   const allowedStatuses = ['Cancelled', 'Delivered'];
   const filter: any = {
-    progressStatus: { $in: allowedStatuses },
+    payload: { $in: allowedStatuses },
   };
   const result = await ReserveDetailsModel.find(filter)
     .populate({
