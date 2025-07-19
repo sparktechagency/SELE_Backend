@@ -130,7 +130,7 @@ const totalEarningByMonthFromDB = async () => {
   const result = await ReserveDetailsModel.aggregate([
     {
       $match: {
-        progressStatus: { $in: ['Delivered', 'Assigned'] },
+        payload: { $in: ['Delivered', 'Assigned'] },
       },
     },
     {

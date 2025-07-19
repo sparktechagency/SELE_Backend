@@ -726,7 +726,6 @@ const deleteReserveDetails = async (id: string) => {
 
 const getReserveStatistics = async (agencyId: string) => {
   // Total orders excluding Cancelled
-  console.log(agencyId);
   const total = await ReserveDetailsModel.aggregate([
     { $match: {} },
     {
@@ -774,7 +773,7 @@ const getReserveStatistics = async (agencyId: string) => {
 
   // In Progress orders
   const inProgress = await ReserveDetailsModel.aggregate([
-    { $match: { payload: { $eq: 'InProgress' } } },
+    { $match: { payload: { $in: ['Request'] } } },
     {
       $lookup: {
         from: 'cars',
@@ -784,6 +783,11 @@ const getReserveStatistics = async (agencyId: string) => {
       },
     },
     { $unwind: '$carInfo' },
+    {
+      $match: {
+        'carInfo.agencyId': new mongoose.Types.ObjectId(agencyId),
+      },
+    },
     {
       $addFields: {
         start: { $toDate: '$startDate' },
@@ -811,7 +815,7 @@ const getReserveStatistics = async (agencyId: string) => {
   ]);
 
   const totalInProgressPrice = inProgress[0]?.totalPrice || 0;
-  const totalOrdersInProgress = inProgress[0]?.totalOrders || 0;
+  const totalReceived = inProgress[0]?.totalOrders || 0;
 
   // Active orders (InProgress or Assigned)
   const activeOrder = await ReserveDetailsModel.aggregate([
@@ -825,6 +829,11 @@ const getReserveStatistics = async (agencyId: string) => {
       },
     },
     { $unwind: '$carInfo' },
+    {
+      $match: {
+        'carInfo.agencyId': new mongoose.Types.ObjectId(agencyId),
+      },
+    },
     {
       $addFields: {
         start: { $toDate: '$startDate' },
@@ -855,7 +864,6 @@ const getReserveStatistics = async (agencyId: string) => {
   const totalActiveOrders = activeOrder[0]?.totalOrders || 0;
 
   // Delivered orders - from paymentVerificationModel (no duration calculation here)
-  console.log(await paymentVerificationModel.find());
   const deliveredOrders = await paymentVerificationModel.aggregate([
     { $match: { status: 'successful' } },
     {
@@ -876,7 +884,7 @@ const getReserveStatistics = async (agencyId: string) => {
       totalPrice: totalPrice.toFixed(2),
     },
     receivedOrder: {
-      count: totalOrdersInProgress,
+      count: totalReceived,
       totalPrice: totalInProgressPrice.toFixed(2),
     },
     activeOrder: {
