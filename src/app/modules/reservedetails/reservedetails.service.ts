@@ -60,9 +60,9 @@ const getAllReserveData = async (
   }
 
   // @ts-ignore
-  if (options.progressStatus) {
+  if (options.payload) {
     // @ts-ignore
-    filter['progressStatus'] = options.progressStatus;
+    filter['payload'] = options.payload;
   }
 
   const data = await ReserveDetailsModel.find(filter)
@@ -102,7 +102,7 @@ const getAllReserveData = async (
       const pricePerDay = (reserve?.carId as any)?.price;
       const insurance = Number((reserve?.carId as any)?.insuranceAmount) || 0;
       const price = pricePerDay * Day;
-  
+
       const appCharge = 10;
       const finalTotal = +(price + appCharge + insurance).toFixed(2);
 
@@ -569,7 +569,6 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
       destination: stripeAccountId,
       description: `Payment to ${user.name} for delivered item`,
     });
-
   }
 
   // 🛠 Update data
@@ -613,12 +612,123 @@ const deleteReserveDetails = async (id: string) => {
   return deletedData;
 };
 
-const getReserveStatistics = async () => {
-  // Get total orders excluding cancelled ones and calculate total price
+// const getReserveStatistics = async () => {
+//   // Total Orders (excluding Cancelled)
+//   const total = await ReserveDetailsModel.aggregate([
+//     { $match: { payload: { $ne: 'Cancelled' } } },
+//     {
+//       $lookup: {
+//         from: 'cars',
+//         localField: 'carId',
+//         foreignField: '_id',
+//         as: 'carInfo',
+//       },
+//     },
+//     { $unwind: '$carInfo' },
+//     {
+//       $group: {
+//         _id: null,
+//         totalPrice: { $sum: '$carInfo.price' },
+//         totalOrders: { $sum: 1 },
+//       },
+//     },
+//   ]);
+
+//   const totalPrice = total[0]?.totalPrice || 0;
+//   const totalOrders = total[0]?.totalOrders || 0;
+
+//   // In Progress Orders
+//   const result = await ReserveDetailsModel.aggregate([
+//     { $match: { payload: 'InProgress' } },
+//     {
+//       $lookup: {
+//         from: 'cars',
+//         localField: 'carId',
+//         foreignField: '_id',
+//         as: 'carInfo',
+//       },
+//     },
+//     { $unwind: '$carInfo' },
+//     {
+//       $group: {
+//         _id: null,
+//         totalPrice: { $sum: '$carInfo.price' },
+//         totalOrders: { $sum: 1 },
+//       },
+//     },
+//   ]);
+
+//   const totalPrices = result[0]?.totalPrice || 0;
+//   const totalOrdersInProgress = result[0]?.totalOrders || 0;
+
+//   // Active Orders (InProgress or Assigned)
+//   const activeOrder = await ReserveDetailsModel.aggregate([
+//     {
+//       $match: {
+//         payload: { $in: ['InProgress', 'Assigned'] },
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'cars',
+//         localField: 'carId',
+//         foreignField: '_id',
+//         as: 'carInfo',
+//       },
+//     },
+//     { $unwind: '$carInfo' },
+//     {
+//       $group: {
+//         _id: null,
+//         totalPrice: { $sum: '$carInfo.price' },
+//         totalOrders: { $sum: 1 },
+//       },
+//     },
+//   ]);
+
+//   const totalActiveOrderPrice = activeOrder[0]?.totalPrice || 0;
+//   const totalActiveOrders = activeOrder[0]?.totalOrders || 0;
+
+//   // Delivered Orders
+//   const deliveredOrders = await paymentVerificationModel.aggregate([
+//     { $match: { status: 'successful' } },
+//     {
+//       $group: {
+//         _id: null,
+//         totalAmount: { $sum: '$amount' },
+//         totalDeliveredOrders: { $sum: 1 },
+//       },
+//     },
+//   ]);
+
+//   const totalAmount = deliveredOrders[0]?.totalAmount || 0;
+//   const totalDeliveredOrders = deliveredOrders[0]?.totalDeliveredOrders || 0;
+
+//   return {
+//     totalOrder: {
+//       count: totalOrders,
+//       totalPrice: totalPrice.toFixed(2),
+//     },
+//     receivedOrder: {
+//       count: totalOrdersInProgress,
+//       totalPrice: totalPrices.toFixed(2),
+//     },
+//     activeOrder: {
+//       count: totalActiveOrders,
+//       totalPrice: totalActiveOrderPrice.toFixed(2),
+//     },
+//     deliveredOrder: {
+//       count: totalDeliveredOrders,
+//       totalAmount: totalAmount.toFixed(2),
+//     },
+//   };
+// };
+
+const getReserveStatistics = async (agencyId: string) => {
+  // Total orders excluding Cancelled
+  console.log(agencyId);
   const total = await ReserveDetailsModel.aggregate([
-    {
-      $match: { progressStatus: { $ne: 'Cancelled' } },
-    },
+    { $match: {} },
     {
       $lookup: {
         from: 'cars',
@@ -629,9 +739,31 @@ const getReserveStatistics = async () => {
     },
     { $unwind: '$carInfo' },
     {
+      $match: {
+        'carInfo.agencyId': new mongoose.Types.ObjectId(agencyId),
+      },
+    },
+    {
+      $addFields: {
+        start: { $toDate: '$startDate' },
+        end: { $toDate: '$endDate' },
+      },
+    },
+    {
+      $addFields: {
+        durationDays: {
+          $ceil: {
+            $divide: [{ $subtract: ['$end', '$start'] }, 1000 * 60 * 60 * 24],
+          },
+        },
+      },
+    },
+    {
       $group: {
         _id: null,
-        totalPrice: { $sum: '$carInfo.price' },
+        totalPrice: {
+          $sum: { $multiply: ['$carInfo.price', '$durationDays'] },
+        },
         totalOrders: { $sum: 1 },
       },
     },
@@ -640,11 +772,9 @@ const getReserveStatistics = async () => {
   const totalPrice = total[0]?.totalPrice || 0;
   const totalOrders = total[0]?.totalOrders || 0;
 
-  // Get total orders in progress
-  const result = await ReserveDetailsModel.aggregate([
-    {
-      $match: { progressStatus: 'InProgress' },
-    },
+  // In Progress orders
+  const inProgress = await ReserveDetailsModel.aggregate([
+    { $match: { payload: { $eq: 'InProgress' } } },
     {
       $lookup: {
         from: 'cars',
@@ -655,24 +785,37 @@ const getReserveStatistics = async () => {
     },
     { $unwind: '$carInfo' },
     {
+      $addFields: {
+        start: { $toDate: '$startDate' },
+        end: { $toDate: '$endDate' },
+      },
+    },
+    {
+      $addFields: {
+        durationDays: {
+          $ceil: {
+            $divide: [{ $subtract: ['$end', '$start'] }, 1000 * 60 * 60 * 24],
+          },
+        },
+      },
+    },
+    {
       $group: {
         _id: null,
-        totalPrice: { $sum: '$carInfo.price' },
+        totalPrice: {
+          $sum: { $multiply: ['$carInfo.price', '$durationDays'] },
+        },
         totalOrders: { $sum: 1 },
       },
     },
   ]);
 
-  const totalPrices = result[0]?.totalPrice || 0;
-  const totalOrdersInProgress = result[0]?.totalOrders || 0;
+  const totalInProgressPrice = inProgress[0]?.totalPrice || 0;
+  const totalOrdersInProgress = inProgress[0]?.totalOrders || 0;
 
-  // Get active orders (InProgress or Assigned)
+  // Active orders (InProgress or Assigned)
   const activeOrder = await ReserveDetailsModel.aggregate([
-    {
-      $match: {
-        progressStatus: { $in: ['InProgress', 'Assigned'] },
-      },
-    },
+    { $match: { payload: { $in: ['InProgress', 'Assigned'] } } },
     {
       $lookup: {
         from: 'cars',
@@ -683,9 +826,26 @@ const getReserveStatistics = async () => {
     },
     { $unwind: '$carInfo' },
     {
+      $addFields: {
+        start: { $toDate: '$startDate' },
+        end: { $toDate: '$endDate' },
+      },
+    },
+    {
+      $addFields: {
+        durationDays: {
+          $ceil: {
+            $divide: [{ $subtract: ['$end', '$start'] }, 1000 * 60 * 60 * 24],
+          },
+        },
+      },
+    },
+    {
       $group: {
         _id: null,
-        totalPrice: { $sum: '$carInfo.price' },
+        totalPrice: {
+          $sum: { $multiply: ['$carInfo.price', '$durationDays'] },
+        },
         totalOrders: { $sum: 1 },
       },
     },
@@ -694,11 +854,10 @@ const getReserveStatistics = async () => {
   const totalActiveOrderPrice = activeOrder[0]?.totalPrice || 0;
   const totalActiveOrders = activeOrder[0]?.totalOrders || 0;
 
-  // Get successfully delivered orders and calculate the total amount
+  // Delivered orders - from paymentVerificationModel (no duration calculation here)
+  console.log(await paymentVerificationModel.find());
   const deliveredOrders = await paymentVerificationModel.aggregate([
-    {
-      $match: { status: 'successful' },
-    },
+    { $match: { status: 'successful' } },
     {
       $group: {
         _id: null,
@@ -718,7 +877,7 @@ const getReserveStatistics = async () => {
     },
     receivedOrder: {
       count: totalOrdersInProgress,
-      totalPrice: totalPrices.toFixed(2),
+      totalPrice: totalInProgressPrice.toFixed(2),
     },
     activeOrder: {
       count: totalActiveOrders,

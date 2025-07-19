@@ -17,13 +17,13 @@ const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
-  const { page, limit, sortBy, sortOrder, progressStatus } = req.query;
+  const { page, limit, sortBy, sortOrder, payload } = req.query;
   const options = {
     page: Number(page) || 1,
     limit: Number(limit) || 10,
     sortBy: sortBy || 'createdAt',
     sortOrder: sortOrder || 'desc',
-    progressStatus: progressStatus,
+    payload: payload || '',
   };
 
   // Log the final options passed to the service
@@ -49,10 +49,7 @@ const getAllReserveDetails = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSpecificReserveDetails = catchAsync(async (req, res) => {
-  // Tumar query parameters like page, limit, sortBy, searchTerm etc ekhane thakbe
   const queryParams = req.query;
-
-  // userId auth middleware theke pabe
   const userId = req.user.id;
 
   const data =
@@ -175,7 +172,8 @@ const deleteReserveDetails = catchAsync(async (req: Request, res: Response) => {
 
 // statistics
 const getReserveStatistics = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReserveDetailsServices.getReserveStatistics();
+  const agencyId = req.user.id;
+  const result = await ReserveDetailsServices.getReserveStatistics(agencyId);
   sendResponse(res, {
     statusCode: 200,
     success: true,
