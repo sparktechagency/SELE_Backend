@@ -26,8 +26,8 @@ async function main() {
       typeof config.port === 'number' ? config.port : Number(config.port);
 
     server = app.listen(port, config.ip_address as string, () => {
-      logger.info(
-        colors.yellow(`♻️  Application listening on port:${config.port}`)
+      colors.yellow(
+        `♻️  Application running at http://${config.ip_address}:${config.port}`
       );
     });
 
@@ -59,7 +59,6 @@ async function main() {
 }
 
 main();
-
 
 //SIGTERM
 process.on('SIGTERM', () => {
