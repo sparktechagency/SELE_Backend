@@ -565,7 +565,7 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
     const totalDay = Math.ceil(
       (new Date(reserveDetails?.endDate!).getTime() -
         new Date(reserveDetails?.startDate!).getTime()) /
-        (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24)
     );
     // @ts-ignore
     const totalPrice = totalDay * reserveDetails?.carId?.price;

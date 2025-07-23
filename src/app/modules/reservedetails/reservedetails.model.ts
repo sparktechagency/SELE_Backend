@@ -93,6 +93,10 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: Boolean,
       default: false,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
