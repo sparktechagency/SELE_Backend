@@ -1,6 +1,6 @@
-# Project Name
+# SELE App Backend
 
-This is a template project for backend development using Typescript, Node.js, Express, Mongoose, Bcrypt, JWT, NodeMailer, Multer, ESLint, and Prettier. The aim is to reduce setup time for new backend projects.
+This is a SELE App Backend project for backend development using Typescript, Node.js, Express, Mongoose, Bcrypt, JWT, NodeMailer, Multer, ESLint, Prettier. The aim is to reduce setup time for new backend projects.
 
 ## Features
 
@@ -47,8 +47,8 @@ Ensure you have the following installed:
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/your-repository.git
-   cd your-repository
+   git clone https://github.com/sparktechagency/SELE_Backend
+   cd SELE_Backend
    ```
 
 2. **Install dependencies:**
@@ -72,7 +72,7 @@ Ensure you have the following installed:
    ```env
    # Basic
    NODE_ENV=development
-   DATABASE_URL=mongodb://127.0.0.1:27017/project_name
+   DATABASE_URL=mongodb://127.0.0.1:27017/SELE
    IP_ADDRESS=192.0.0.0
    PORT=5000
 
