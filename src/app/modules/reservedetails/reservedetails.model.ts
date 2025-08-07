@@ -97,6 +97,11 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: Boolean,
       default: false,
     },
+    bookingType: {
+      type: String,
+      enum: ['Instant', 'Reservation'],
+      required: true,
+    },
   },
   {
     timestamps: true,

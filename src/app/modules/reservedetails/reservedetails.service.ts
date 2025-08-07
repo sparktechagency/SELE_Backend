@@ -32,7 +32,7 @@ const createReserveDetails = async (payload: IReserveDetails, user: string) => {
     User.findById(user),
     User.findOne({ role: USER_ROLES.SUPER_ADMIN }),
   ]);
-  if (superAdmin) {
+  if (superAdmin && payload.bookingType === 'Reservation') {
     const notificationPayload = {
       sender: userDetail?._id,
       receiver: superAdmin._id,
@@ -522,7 +522,8 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
   }
 
   const notificationPayload = {
-    userId: updatedData?.userId,
+    sender: updatedData?.userId,
+    receiver: updatedData?.carId?.agencyId,
     title: 'Reserve Details In Progress',
     message: `Your reserve details are in ${data.payload}`,
     type: 'reserve_details',

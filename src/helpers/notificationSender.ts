@@ -1,5 +1,6 @@
 import { INotification } from '../app/modules/notification/notification.interface';
 import { Notification } from '../app/modules/notification/notification.model';
+import { logger } from '../shared/logger';
 
 export const sendNotifications = async (
   data: INotification
@@ -9,7 +10,7 @@ export const sendNotifications = async (
   const socketIo = global.io;
   if (socketIo) {
     socketIo.emit(`get-notification::${data?.receiver}`, result);
-    console.log("Notification sent successfully to user", data?.receiver);
+    logger.info("👌👌👌👌👌 Notification sent successfully to user", data?.receiver);
   }
   return result;
 };

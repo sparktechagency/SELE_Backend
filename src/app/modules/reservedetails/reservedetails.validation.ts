@@ -18,6 +18,7 @@ const reserveDetailsSchema = z.object({
 
         yourID: z.array(z.string(), { invalid_type_error: "Your ID must be an array of strings" }),
         userId: z.string({ invalid_type_error: "UserId must be a string" }).optional(),
+        bookingType: z.enum(['Instant', 'Reservation'], { invalid_type_error: "Booking Type must be 'Instant' or 'Reservation'" }),
     })
 })
 

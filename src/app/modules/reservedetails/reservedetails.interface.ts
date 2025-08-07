@@ -29,4 +29,5 @@ export type IReserveDetails = {
   insuranceAmount?: string;
   isInsured?: boolean;
   isVerified?: boolean;
+  bookingType: "Instant" | "Reservation";
 };
