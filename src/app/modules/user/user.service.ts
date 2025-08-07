@@ -9,7 +9,6 @@ import { IUser } from './user.interface';
 import { User } from './user.model';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
-  //set role
   const createUser = await User.create(payload);
   if (!createUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create user');
@@ -36,7 +35,6 @@ const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
     { $set: { authentication } },
     { new: true }
   );
-
   return createUser;
 };
 

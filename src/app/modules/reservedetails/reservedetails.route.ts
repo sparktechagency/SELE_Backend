@@ -64,19 +64,23 @@ router.get(
   ReserveDetailsController.getSpecificReserveDetails
 );
 // statistics
-router.get("/statistics",auth(USER_ROLES.AGENCY),ReserveDetailsController.getReserveStatistics)
+router.get("/statistics", auth(USER_ROLES.AGENCY), ReserveDetailsController.getReserveStatistics)
 
 // history
-router.get("/history",auth(USER_ROLES.USER, USER_ROLES.AGENCY),ReserveDetailsController.getSpecificReserveHistory)
+router.get("/history", auth(USER_ROLES.USER, USER_ROLES.AGENCY), ReserveDetailsController.getSpecificReserveHistory)
 // get single
 router.get('/:id', ReserveDetailsController.getSingleReserveDetails);
 
 // delete
 router.delete('/:id', ReserveDetailsController.deleteReserveDetails);
 
+// ! verify from admin
+router.patch('/verify/:id', auth(USER_ROLES.SUPER_ADMIN), ReserveDetailsController.ReservationVerify);
+
 // update
 router.patch(
   '/:id',
+  auth(USER_ROLES.USER, USER_ROLES.AGENCY, USER_ROLES.SUPER_ADMIN),
   fileUploadHandler(),
   ReserveDetailsController.updateReserveDetails
 );

@@ -9,6 +9,7 @@ export const sendNotifications = async (
   const socketIo = global.io;
   if (socketIo) {
     socketIo.emit(`get-notification::${data?.userId}`, result);
+    console.log("Notification sent successfully to user", data?.userId);
   }
   return result;
 };

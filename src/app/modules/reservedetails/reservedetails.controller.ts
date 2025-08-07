@@ -182,6 +182,20 @@ const getReserveStatistics = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const ReservationVerify = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const payload = req.body;
+  const result = await ReserveDetailsServices.ReservationVerifyFromDB(id,payload);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Successfully Verify Reserve Details',
+    data: result,
+  });
+});
+
+
+
 export const ReserveDetailsController = {
   createReserveDetails,
   getAllReserveDetails,
@@ -191,4 +205,6 @@ export const ReserveDetailsController = {
   getSpecificReserveDetails,
   getSpecificReserveHistory,
   getReserveStatistics,
+  // ** verify from admin
+  ReservationVerify,
 };

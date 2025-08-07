@@ -6,20 +6,21 @@ import validateRequest from '../../middlewares/validateRequest';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 import ApiError from '../../../errors/ApiError';
+import { getMultipleFilesPath } from '../../../shared/getFilePath';
 const router = express.Router();
 
 router
   .route('/profile')
   .get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER, USER_ROLES.AGENCY), UserController.getUserProfile)
   .patch(
-    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER,USER_ROLES.AGENCY),
+    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER, USER_ROLES.AGENCY),
     fileUploadHandler(),
     (req: Request, res: Response, next: NextFunction) => {
       if (req.body.data) {
-        
+
         // Parse the data from the request body
         const parsedData = JSON.parse(req.body.data);
-      
+
         // Safely convert latitude and longitude to numbers
         if (parsedData.latitude) {
           const latitude = parseFloat(parsedData.latitude);
@@ -32,7 +33,7 @@ router
           }
           parsedData.latitude = latitude;
         }
-      
+
         if (parsedData.longitude) {
           const longitude = parseFloat(parsedData.longitude);
           // Check if longitude is a valid number and within the valid range
@@ -44,7 +45,7 @@ router
           }
           parsedData.longitude = longitude;
         }
-      
+
         // Now validate the parsed data using the Zod schema
         req.body = UserValidation.updateUserZodSchema.parse(parsedData);
       }
@@ -55,6 +56,17 @@ router
 router
   .route('/')
   .post(
+    fileUploadHandler(),
+    (req: Request, res: Response, next: NextFunction) => {
+      const yourID = getMultipleFilesPath(req.files, 'yourID' as any);
+      const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense' as any);
+      req.body = {
+        ...req.body,
+        yourID,
+        drivingLicense,
+      };
+      next();
+    },
     validateRequest(UserValidation.createUserZodSchema),
     UserController.createUser
   );

@@ -27,17 +27,48 @@ const createReserveDetails = async (payload: IReserveDetails, user: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
 
+  // const notificationPayload = {
+  //   // @ts-ignore
+  //   userId: reserveData?._id,
+  //   title: 'Reserve Details In Progress',
+  //   message: `Your reserve details are in InProgress`,
+  //   type: 'reserve_details',
+  // };
+
+  // await sendNotifications(notificationPayload as any);
+  return reserveData;
+};
+
+// # do verify from admin
+const ReservationVerifyFromDB = async (id: string, payload: any) => {
+  const result = await ReserveDetailsModel.findByIdAndUpdate(id, payload, { new: true })
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details")
+  }
+
+  //  userId: string;
+  //     title: string;
+  //     message: string;
+  //     isRead: boolean;
+  //     createdAt?: Date;
+  //     filePath?:"conversion" | "reservation" | "allOrder"
+  //     referenceId?:Types.ObjectId
+
   const notificationPayload = {
-    // @ts-ignore
-    userId: reserveData?._id,
+    userId: result?.userId,
     title: 'Reserve Details In Progress',
     message: `Your reserve details are in InProgress`,
-    type: 'reserve_details',
+    isRead: false,
+    filePath: 'reservation',
+    referenceId: result?._id,
   };
 
   await sendNotifications(notificationPayload as any);
-  return reserveData;
-};
+  console.log("Notification sent successfully to user", notificationPayload?.userId);
+  return result
+}
+
+
 
 // get all reserve data
 /// agency and rating details
@@ -173,119 +204,6 @@ const getAllReserveData = async (
     },
   };
 };
-
-// const getReceivedAInProgressAndAssignedReserveData = async (
-//   options: IPaginationOptions,
-//   userId: string,
-//   role?: string
-// ) => {
-//   const { page, limit, skip, sortBy, sortOrder } =
-//     paginationHelper.calculatePagination(options);
-
-//   const allowedStatuses = ['Request', 'InProgress', 'Assigned'];
-//   const filter: any = {
-//     progressStatus: { $in: allowedStatuses },
-//   };
-
-//   const data = await ReserveDetailsModel.find(filter)
-//     .populate({
-//       path: 'carId',
-//       populate: [
-//         { path: 'brandName' },
-//         { path: 'category' },
-//         { path: 'agencyId' },
-//       ],
-//     })
-//     .populate('userId')
-//     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-//     .skip(skip)
-//     .limit(limit)
-//     .lean();
-//   console.log(data);
-//   const reserveDataWithRatings = await Promise.all(
-//     data.map(async reserve => {
-//       const carId = reserve?.carId?._id;
-//       console.log(carId);
-
-//       // Rental days calculation
-//       const start = new Date(reserve?.startDate);
-//       const end = new Date(reserve?.endDate);
-//       const timeDiff = end.getTime() - start.getTime();
-//       const Day = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-//       // Price calculation
-//       const pricePerDay = (reserve?.carId as any)?.price || 0;
-//       const price = pricePerDay * Day;
-//       const appCharge = 10;
-//       const finalTotal = +(price + appCharge).toFixed(2);
-
-//       // Ratings aggregation
-//       const [ratingAggregation] = await Rating.aggregate([
-//         { $match: { carId } },
-//         {
-//           $group: {
-//             _id: null,
-//             averageRating: { $avg: '$rating' },
-//             totalRatings: { $sum: 1 },
-//           },
-//         },
-//       ]);
-
-//       const ratingPage = 1;
-//       const ratingLimit = 10;
-//       const ratingSkip = (ratingPage - 1) * ratingLimit;
-
-//       const reviews = await Rating.find({ carId })
-//         .skip(ratingSkip)
-//         .limit(ratingLimit)
-//         .populate('userId', 'name email image')
-//         .lean();
-//       console.log(reviews);
-//       const carWithRatings = {
-//         ...(reserve.carId as any)?._doc,
-//         ratings: {
-//           averageRating: ratingAggregation?.averageRating?.toFixed(1) || 0,
-//           totalRatings: ratingAggregation?.totalRatings || 0,
-//           reviews: {
-//             data: reviews.map(r => ({
-//               userId: r?.userId,
-//               rating: r?.rating,
-//               review: r?.review,
-//               createdAt: r?.createdAt,
-//             })),
-//             pagination: {
-//               page: ratingPage,
-//               limit: ratingLimit,
-//               totalPages: Math.ceil(
-//                 (ratingAggregation?.totalRatings || 0) / ratingLimit
-//               ),
-//             },
-//           },
-//         },
-//       };
-
-//       return {
-//         ...reserve,
-//         carId: carWithRatings,
-//         Day,
-//         price,
-//         appCharge,
-//         finalTotal,
-//       };
-//     })
-//   );
-
-//   const total = await ReserveDetailsModel.countDocuments(filter);
-
-//   return {
-//     meta: {
-//       page,
-//       limit,
-//       total,
-//     },
-//     data: reserveDataWithRatings,
-//   };
-// };
 
 const getReceivedAInProgressAndAssignedReserveData = async (
   query: Record<string, any>,
@@ -535,6 +453,7 @@ const getSingleReserveData = async (id: string) => {
 
 // Update Reserve Details
 const updateReserveDetails = async (id: string, data: IReserveDetails) => {
+
   const reserveDetails = await ReserveDetailsModel.findById(id).populate(
     'carId'
   );
@@ -605,6 +524,7 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
 
   await sendNotifications(notificationPayload as any);
   return updatedData;
+
 };
 
 // Delete Reserve Details
@@ -792,12 +712,16 @@ const getReserveStatistics = async (agencyId: string) => {
   };
 };
 
+
+
 export const ReserveDetailsServices = {
   createReserveDetails,
   getAllReserveData,
   getSingleReserveData,
   updateReserveDetails,
   deleteReserveDetails,
+  // ** verify from admin
+  ReservationVerifyFromDB,
   //
   getReceivedAInProgressAndAssignedReserveData,
   getReserveHistory,

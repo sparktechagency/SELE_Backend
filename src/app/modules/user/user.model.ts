@@ -53,6 +53,14 @@ const userSchema = new Schema<IUser, UserModal>(
     longitude: {
       type: Number,
     },
+    drivingLicense: {
+      type: [String],
+      required: true,
+    },
+    yourID: {
+      type: [String],
+      required: true,
+    },
     verified: {
       type: Boolean,
       default: false,
@@ -82,7 +90,7 @@ const userSchema = new Schema<IUser, UserModal>(
         type: Boolean,
         default: false,
       },
-      stripeAccountId: {type: String },
+      stripeAccountId: { type: String },
       externalAccountId: { type: String },
       currency: { type: String },
       accountUrl: { type: String }

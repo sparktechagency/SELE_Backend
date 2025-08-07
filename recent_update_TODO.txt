@@ -1,0 +1,2 @@
+1.  Need to change update user model
+2.  Need to change reservation seciton also notification
