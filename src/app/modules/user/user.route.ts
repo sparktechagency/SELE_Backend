@@ -57,7 +57,7 @@ router
   .route('/')
   .post(
     fileUploadHandler(),
-    (req: Request, res: Response, next: NextFunction) => {
+    (req: Request, _res: Response, next: NextFunction) => {
       const yourID = getMultipleFilesPath(req.files, 'yourID' as any);
       const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense' as any);
       req.body = {

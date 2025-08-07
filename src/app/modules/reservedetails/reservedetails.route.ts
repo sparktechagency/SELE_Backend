@@ -8,6 +8,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ReserveDetailsController } from './reservedetails.controller';
 import { USER_ROLES } from '../../../enums/user';
 import auth from '../../middlewares/auth';
+import { User } from '../user/user.model';
 const router = express.Router();
 // create
 router.post(
@@ -17,10 +18,9 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Check if the required files are uploaded for drivingLicense and yourID
-      // @ts-ignore
-      const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense');
-      // @ts-ignore
-      const yourID = getMultipleFilesPath(req.files, 'yourID');
+      const user = await User.findById(req.user?.id);
+      const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense' as any) || user?.drivingLicense || [];
+      const yourID = getMultipleFilesPath(req.files, 'yourID' as any) || user?.yourID || [];
 
       // If either of the files is not uploaded, return an error
       if (!drivingLicense || !yourID) {

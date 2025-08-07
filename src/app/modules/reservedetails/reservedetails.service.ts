@@ -26,17 +26,8 @@ const createReserveDetails = async (payload: IReserveDetails, user: string) => {
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
-
-  // const notificationPayload = {
-  //   // @ts-ignore
-  //   userId: reserveData?._id,
-  //   title: 'Reserve Details In Progress',
-  //   message: `Your reserve details are in InProgress`,
-  //   type: 'reserve_details',
-  // };
-
-  // await sendNotifications(notificationPayload as any);
   return reserveData;
+
 };
 
 // # do verify from admin
@@ -45,15 +36,6 @@ const ReservationVerifyFromDB = async (id: string, payload: any) => {
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details")
   }
-
-  //  userId: string;
-  //     title: string;
-  //     message: string;
-  //     isRead: boolean;
-  //     createdAt?: Date;
-  //     filePath?:"conversion" | "reservation" | "allOrder"
-  //     referenceId?:Types.ObjectId
-
   const notificationPayload = {
     userId: result?.userId,
     title: 'Reserve Details In Progress',
