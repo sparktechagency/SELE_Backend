@@ -72,7 +72,6 @@ const ReservationVerifyFromDB = async (id: string, payload: any) => {
     filePath: 'reservation',
     referenceId: result?._id,
   };
-
   await sendNotifications(notificationPayload as any);
   return result
 }
