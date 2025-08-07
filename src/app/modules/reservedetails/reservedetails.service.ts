@@ -12,6 +12,7 @@ import { User } from '../user/user.model';
 import { stripe } from '../../../config/stripe';
 import mongoose, { Types } from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { USER_ROLES } from '../../../enums/user';
 
 // create reserve Data
 
@@ -26,27 +27,53 @@ const createReserveDetails = async (payload: IReserveDetails, user: string) => {
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
+
+  const [userDetail, superAdmin] = await Promise.all([
+    User.findById(user),
+    User.findOne({ role: USER_ROLES.SUPER_ADMIN }),
+  ]);
+  if (superAdmin) {
+    const notificationPayload = {
+      sender: userDetail?._id,
+      receiver: superAdmin._id,
+      title: 'New Reserve Request',
+      message: `${userDetail?.name} submitted a new reservation on ${new Date().toLocaleDateString()}`,
+      isRead: false,
+      filePath: 'reservation',
+      referenceId: reserveData._id,
+    };
+
+    await sendNotifications(notificationPayload as any);
+  }
+
   return reserveData;
 
 };
 
 // # do verify from admin
 const ReservationVerifyFromDB = async (id: string, payload: any) => {
-  const result = await ReserveDetailsModel.findByIdAndUpdate(id, payload, { new: true })
+  const result = await ReserveDetailsModel.findByIdAndUpdate(id, payload, { new: true }).populate({ path: "carId", select: "agencyId" });
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details")
   }
+  // get user and agency details
+  const [userDetail, agencyDetail] = await Promise.all([
+    User.findById(result?.userId),
+    // @ts-ignore
+    User.findById(result?.carId?.agencyId),
+  ])
+
   const notificationPayload = {
-    userId: result?.userId,
-    title: 'Reserve Details In Progress',
-    message: `Your reserve details are in InProgress`,
+    sender: userDetail?._id,
+    receiver: agencyDetail?._id,
+    title: `New Reservetion request from ${userDetail?.name}`,
+    message: `Reservation request from ${userDetail?.name} is now in progress.`,
     isRead: false,
     filePath: 'reservation',
     referenceId: result?._id,
   };
 
   await sendNotifications(notificationPayload as any);
-  console.log("Notification sent successfully to user", notificationPayload?.userId);
   return result
 }
 

@@ -8,8 +8,8 @@ export const sendNotifications = async (
   //@ts-ignore
   const socketIo = global.io;
   if (socketIo) {
-    socketIo.emit(`get-notification::${data?.userId}`, result);
-    console.log("Notification sent successfully to user", data?.userId);
+    socketIo.emit(`get-notification::${data?.receiver}`, result);
+    console.log("Notification sent successfully to user", data?.receiver);
   }
   return result;
 };
