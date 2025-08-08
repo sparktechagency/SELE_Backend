@@ -477,6 +477,7 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
       // @ts-ignore
       new Types.ObjectId(reserveDetails?.carId?.agencyId)
     );
+    // 
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
     }
