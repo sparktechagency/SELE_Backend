@@ -11,6 +11,7 @@ const createUserZodSchema = z.object({
     yourID: z.array(z.string()).min(1, 'At least one your ID is required'),
     profile: z.string().optional(),
     description: z.string().optional(),
+    adminApproval: z.boolean().optional(),
   }),
 });
 

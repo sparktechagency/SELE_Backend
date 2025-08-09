@@ -7,6 +7,8 @@ import unlinkFile from '../../../shared/unlinkFile';
 import generateOTP from '../../../util/generateOTP';
 import { IUser } from './user.interface';
 import { User } from './user.model';
+import { sendNotifications } from '../../../helpers/notificationSender';
+import { USER_ROLES } from '../../../enums/user';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
   const createUser = await User.create(payload);
@@ -35,6 +37,30 @@ const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
     { $set: { authentication } },
     { new: true }
   );
+  const superAdmin = await User.findOne({ role: USER_ROLES.SUPER_ADMIN });
+  if (!superAdmin) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Super admin not found');
+  }
+
+  // need to send notification to admin using sociat and email
+  const notificationPayload = {
+    sender: createUser._id,
+    receiver: superAdmin._id,
+    title: `New User Registration request from ${createUser.name}`,
+    message: `Please verify ${createUser.name} email address and driving license and your ID.`,
+    isRead: false,
+    filePath: 'user',
+    referenceId: createUser._id,
+  };
+  await sendNotifications(notificationPayload as any);
+  // need to call email template and return user email and name to super admin
+  const adminEmailTemplate = emailTemplate.adminEmailTemplate({
+    name: createUser.name,
+    email: superAdmin.email,
+  });
+  emailHelper.sendEmail(adminEmailTemplate);
+
+
   return createUser;
 };
 

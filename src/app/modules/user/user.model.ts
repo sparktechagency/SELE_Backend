@@ -61,6 +61,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: [String],
       required: true,
     },
+    adminApproval: {
+      type: Boolean,
+      default: false,
+    },
     verified: {
       type: Boolean,
       default: false,

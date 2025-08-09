@@ -6,7 +6,7 @@ const notificationSchema = new Schema<INotification>({
   receiver: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   title: { type: String, required: true },
   message: { type: String, required: true },
-  filePath: { type: String, enum: ['conversion', 'reservation', 'allOrder'] },
+  filePath: { type: String, enum: ['conversion', 'reservation', 'allOrder', 'user'] },
   isRead: { type: Boolean, default: false },
   referenceId: { type: Schema.Types.ObjectId },
 }, {

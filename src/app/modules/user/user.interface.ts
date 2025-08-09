@@ -12,6 +12,7 @@ export type IUser = {
   verified: boolean;
   drivingLicense: [string];
   yourID: [string];
+  adminApproval: boolean;
   isDeleted: boolean;
   authentication?: {
     isResetPassword: boolean;

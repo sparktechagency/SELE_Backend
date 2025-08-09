@@ -7,7 +7,7 @@ export interface INotification {
     message: string;
     isRead: boolean;
     createdAt?: Date;
-    filePath?: "conversion" | "reservation" | "allOrder"
+    filePath?: "conversion" | "reservation" | "allOrder" | "user"
     referenceId?: Types.ObjectId
 }
 
