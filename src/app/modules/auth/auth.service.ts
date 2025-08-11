@@ -18,67 +18,75 @@ import { ResetToken } from '../resetToken/resetToken.model';
 import { User } from '../user/user.model';
 import { getBonzahToken } from '../../../util/getBonzahToken';
 import { USER_ROLES } from '../../../enums/user';
-import { IUser } from '../user/user.interface';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
   const { email, password } = payload;
-  const isExistUser = await User.findOne({ email }).select('+password');
-  if (!isExistUser) {
+
+  // 1️⃣ Check if user exists
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-  if (isExistUser.isDeleted) {
-    await User.findOneAndUpdate(
-      { _id: isExistUser._id },
-      { isDeleted: false },
-      { new: true }
-    );
+
+  // 2️⃣ Reactivate deleted account (with adminApproval check if needed)
+  if (user.isDeleted) {
+    user.isDeleted = false;
+    user.adminApproval = true;
+    await user.save();
   }
 
-  //check verified and status
-  if (!isExistUser.verified) {
+  // 3️⃣ Verify account status
+  if (!user.verified) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Please verify your account, then try to login again'
+      'Please verify your account before logging in.'
     );
   }
 
-  //check user status
-  // @ts-ignore
-  if (isExistUser.isDeleted) {
+  if (!user.adminApproval) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'You don’t have permission to access this content.It looks like your account has been deactivated. Please contact support for further assistance.'
+      'Your Driving License and Id is not approved. Please wait for admin approval.'
     );
   }
 
-  //check match password
-  if (
-    password &&
-    !(await User.isMatchPassword(password, isExistUser.password))
-  ) {
+  if (user.isDeleted) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Your account has been deactivated. Please contact support.'
+    );
+  }
+
+  // 4️⃣ Check password match
+  const isPasswordValid = password
+    ? await User.isMatchPassword(password, user.password)
+    : false;
+
+  if (!isPasswordValid) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
   }
 
-  //create token
-  const accessToken = jwtHelper.createToken(
-    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
-    config.jwt.jwt_secret as Secret,
-    config.jwt.jwt_expire_in as string
-  );
-  // refresh token
-  const refreshToken = jwtHelper.createToken(
-    { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email },
-    config.jwt.jwt_refresh as Secret,
-    config.jwt.jwt_refresh_expire_in as string
-  );
-  let bonzaTokenPromise: Promise<string | null> = Promise.resolve(null);
-  if (isExistUser.role === USER_ROLES.USER) {
-    bonzaTokenPromise = getBonzahToken();
-  }
-  const bonzaToken = await bonzaTokenPromise;
+  // 5️⃣ Generate tokens
+  const payloadData = { id: user._id, role: user.role, email: user.email };
 
-  return { accessToken, refreshToken, role: isExistUser?.role, bonzaToken };
+  const accessToken = jwtHelper.createToken(
+    payloadData,
+    config.jwt.jwt_secret!,
+    config.jwt.jwt_expire_in!
+  );
+
+  const refreshToken = jwtHelper.createToken(
+    payloadData,
+    config.jwt.jwt_refresh!,
+    config.jwt.jwt_refresh_expire_in!
+  );
+
+  // 6️⃣ Get Bonza token if user role is USER
+  const bonzaToken =
+    user.role === USER_ROLES.USER ? await getBonzahToken() : null;
+
+  return { accessToken, refreshToken, role: user.role, bonzaToken };
 };
 
 //forget password
@@ -376,6 +384,9 @@ const deleteUserByEmailAndPassword = async (email: string, password: string) => 
   return;
 };
 
+
+
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -386,5 +397,5 @@ export const AuthService = {
   resendOTP,
   getSingleUserFromDB,
   newAccessTokenToUser,
-  deleteUserByEmailAndPassword
+  deleteUserByEmailAndPassword,
 };

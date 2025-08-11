@@ -3,10 +3,10 @@ import { USER_ROLES } from '../../../enums/user';
 import auth from '../../middlewares/auth';
 import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import validateRequest from '../../middlewares/validateRequest';
-import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 import ApiError from '../../../errors/ApiError';
 import { getMultipleFilesPath } from '../../../shared/getFilePath';
+import { UserController } from './user.controller';
 const router = express.Router();
 
 router
@@ -71,4 +71,10 @@ router
     UserController.createUser
   );
 router.post('/verify-otp', UserController.verifyUserOTP);
+// user approval
+router.patch(
+  '/user-approval/:id',
+  auth(USER_ROLES.SUPER_ADMIN),
+  UserController.userApproval
+)
 export const UserRoutes = router;

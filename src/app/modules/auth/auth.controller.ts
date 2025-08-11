@@ -75,8 +75,8 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 // delete user
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
-  const {password}=req.body;
-  const result = await AuthService.deleteUserToDB(user,password)
+  const { password } = req.body;
+  const result = await AuthService.deleteUserToDB(user, password)
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -107,10 +107,10 @@ const newAccessToken = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.newAccessTokenToUser(refreshToken);
 
   sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: 'Generate Access Token successfully',
-      data: result
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Generate Access Token successfully',
+    data: result
   });
 });
 
@@ -141,6 +141,9 @@ const deleteUserByEmailAndPassword = catchAsync(async (req: Request, res: Respon
 });
 
 
+
+
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -151,5 +154,5 @@ export const AuthController = {
   resendOtp,
   getSingleUser,
   newAccessToken,
-  deleteUserByEmailAndPassword
+  deleteUserByEmailAndPassword,
 };

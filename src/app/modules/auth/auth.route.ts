@@ -11,7 +11,10 @@ router.post(
   validateRequest(AuthValidation.createLoginZodSchema),
   AuthController.loginUser
 );
-
+router.post(
+  '/refresh-token',
+  AuthController.newAccessToken
+);
 router.post(
   '/forget-password',
   validateRequest(AuthValidation.createForgetPasswordZodSchema),
@@ -37,6 +40,22 @@ router.post(
   AuthController.changePassword
 );
 
+// get single user
+router.get("/user-details",
+  auth(USER_ROLES.AGENCY, USER_ROLES.USER, USER_ROLES.SUPER_ADMIN),
+  AuthController.getSingleUser
+)
+// resend otp
+router.post("/resend-otp",
+  AuthController.resendOtp
+)
+
+
+
+router.delete(
+  '/public/delete-user',
+  AuthController.deleteUserByEmailAndPassword
+)
 router.delete(
   '/delete-user',
   auth(USER_ROLES.AGENCY, USER_ROLES.USER),
@@ -44,26 +63,5 @@ router.delete(
 );
 
 
-// resend otp
-router.post("/resend-otp",
-  AuthController.resendOtp
-)
-
-// get single user
-router.get("/user-details",
-  auth(USER_ROLES.AGENCY, USER_ROLES.USER, USER_ROLES.SUPER_ADMIN),
-  AuthController.getSingleUser
-)
-
-router.post(
-  '/refresh-token',
-  AuthController.newAccessToken
-);
-
-
-router.delete(
-  '/public/delete-user',
-  AuthController.deleteUserByEmailAndPassword
-)
 
 export const AuthRoutes = router;

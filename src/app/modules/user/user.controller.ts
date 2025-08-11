@@ -70,4 +70,17 @@ const verifyUserOTP = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const UserController = { createUser, getUserProfile, updateProfile, verifyUserOTP };
+
+const userApproval = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.adminApprovalUserIntoDB(req.user, id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User approved successfully',
+    data: result,
+  });
+});
+
+export const UserController = { createUser, getUserProfile, updateProfile, verifyUserOTP, userApproval };

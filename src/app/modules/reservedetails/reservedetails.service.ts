@@ -12,8 +12,7 @@ import { User } from '../user/user.model';
 import { stripe } from '../../../config/stripe';
 import mongoose, { Types } from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { USER_ROLES } from '../../../enums/user';
-
+import { isoToNormal } from '../../../helpers/isoToNormal';
 // create reserve Data
 
 const createReserveDetails = async (payload: IReserveDetails, user: Types.ObjectId) => {
@@ -23,15 +22,27 @@ const createReserveDetails = async (payload: IReserveDetails, user: Types.Object
     orderId,
   };
   const newPayload = { ...newData, user };
+
+  if (payload.carId) {
+    const isBooked = await ReserveDetailsModel.findOne({
+      carId: payload.carId,
+      startDate: { $lte: payload.endDate },
+      endDate: { $gte: payload.startDate },
+    });
+    if (isBooked) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, `All ready booked this car from ${isoToNormal(isBooked.startDate.toString())} to ${isoToNormal(isBooked.endDate.toString())}`)
+    }
+  }
   const reserveData = await ReserveDetailsModel.create(newPayload);
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
-  const userDetail = await User.findById(user);
-  const carDetail = await CarsModel.findById(payload.carId);
+  const [userDetail, carDetail] = await Promise.all([
+    User.findById(user),
+    CarsModel.findById(payload.carId),
+  ])
   const notificationPayload = {
     sender: userDetail?._id,
-    // @ts-ignore
     receiver: carDetail?.agencyId,
     title: 'New Reserve Request',
     message: `${userDetail?.name} submitted a new reservation on ${new Date().toLocaleDateString()}`,
@@ -39,9 +50,7 @@ const createReserveDetails = async (payload: IReserveDetails, user: Types.Object
     filePath: 'reservation',
     referenceId: reserveData._id,
   };
-
   await sendNotifications(notificationPayload as any);
-
   return reserveData;
 
 };
@@ -53,7 +62,7 @@ const ReservationVerifyFromDB = async (id: string, payload: any) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details")
   }
   // get user and agency details
-  const [userDetail] = await Promise.all([
+  const [userDetail, agencyDetail] = await Promise.all([
     User.findById(result?.user),
     // @ts-ignore
     User.findById(result?.carId?.agencyId),
@@ -457,7 +466,6 @@ const getSingleReserveData = async (id: string) => {
 
 // Update Reserve Details
 const updateReserveDetails = async (id: string, data: IReserveDetails) => {
-
   const reserveDetails = await ReserveDetailsModel.findById(id).populate(
     'carId'
   );
@@ -465,8 +473,6 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
   if (!reserveDetails) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Reserve Details not found');
   }
-
-  // 💥 Check: Only validate agencyId if status is Delivered
   // @ts-ignore
   if (data.payload === 'Delivered') {
     const user = await User.findById(
@@ -501,7 +507,6 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
       description: `Payment to ${user.name} for delivered item`,
     });
   }
-
   // 🛠 Update data
   const updatedData: any = await ReserveDetailsModel.findByIdAndUpdate(
     id,
@@ -510,27 +515,23 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
       new: true,
     }
   );
-
   if (!updatedData) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       'Failed to update Reserve Details'
     );
   }
-
   const notificationPayload = {
-    sender: updatedData?.userId,
-    receiver: updatedData?.carId?.agencyId,
+    sender: updatedData?.user || updatedData?.carId?.agencyId,
+    receiver: updatedData?.user || updatedData?.carId?.agencyId,
     title: 'Reserve Details In Progress',
     message: `Your reserve details are in ${data.payload}`,
     type: 'reserve_details',
     filePath: 'reservation',
     referenceId: updatedData?._id,
   };
-
   await sendNotifications(notificationPayload as any);
   return updatedData;
-
 };
 
 // Delete Reserve Details

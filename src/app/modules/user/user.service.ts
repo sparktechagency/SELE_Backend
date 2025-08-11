@@ -133,11 +133,44 @@ const verifyOTPIntoDB = async (email: string, otp: number): Promise<boolean> => 
   return true;
 };
 
+/**
+ * Approve a user by ID — only SUPER_ADMIN can approve.
+ */
+const adminApprovalUserIntoDB = async (user: JwtPayload, id: string) => {
+
+  if (user.role !== USER_ROLES.SUPER_ADMIN) {
+    throw new ApiError(
+      StatusCodes.FORBIDDEN,
+      'You do not have permission to approve users.'
+    );
+  }
+
+  const targetUser = await User.findById(id);
+  if (!targetUser) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User doesn't exist!");
+  }
+  if (targetUser.adminApproval) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User is already approved.');
+  }
+
+  await User.findByIdAndUpdate(
+    id,
+    { adminApproval: true },
+    { new: true }
+  );
+
+  return {
+    message: 'User approved successfully.'
+  };
+};
+
+
 
 
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
   updateProfileToDB,
-  verifyOTPIntoDB
+  verifyOTPIntoDB,
+  adminApprovalUserIntoDB
 };
