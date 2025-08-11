@@ -5,10 +5,8 @@ export type IReserveDetails = {
   carId: Types.ObjectId;
   startDate: string;
   endDate: string;
-  drivingLicense: string[];
-  yourID: string[];
+  user: Types.ObjectId;
   payload: progressStatus;
-  userId?: Types.ObjectId;
   orderId?: String;
   createdAt?: Date;
   category?: Types.ObjectId;

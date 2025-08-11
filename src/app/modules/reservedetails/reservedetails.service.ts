@@ -16,35 +16,31 @@ import { USER_ROLES } from '../../../enums/user';
 
 // create reserve Data
 
-const createReserveDetails = async (payload: IReserveDetails, user: string) => {
+const createReserveDetails = async (payload: IReserveDetails, user: Types.ObjectId) => {
   const orderId = Math.floor(100000 + Math.random() * 900000);
   const newData = {
     ...payload,
     orderId,
   };
-  const newPayload = { ...newData, userId: user };
+  const newPayload = { ...newData, user };
   const reserveData = await ReserveDetailsModel.create(newPayload);
   if (!reserveData) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
   }
+  const userDetail = await User.findById(user);
+  const carDetail = await CarsModel.findById(payload.carId);
+  const notificationPayload = {
+    sender: userDetail?._id,
+    // @ts-ignore
+    receiver: carDetail?.agencyId,
+    title: 'New Reserve Request',
+    message: `${userDetail?.name} submitted a new reservation on ${new Date().toLocaleDateString()}`,
+    isRead: false,
+    filePath: 'reservation',
+    referenceId: reserveData._id,
+  };
 
-  const [userDetail, superAdmin] = await Promise.all([
-    User.findById(user),
-    User.findOne({ role: USER_ROLES.SUPER_ADMIN }),
-  ]);
-  if (superAdmin && payload.bookingType === 'Reservation') {
-    const notificationPayload = {
-      sender: userDetail?._id,
-      receiver: superAdmin._id,
-      title: 'New Reserve Request',
-      message: `${userDetail?.name} submitted a new reservation on ${new Date().toLocaleDateString()}`,
-      isRead: false,
-      filePath: 'reservation',
-      referenceId: reserveData._id,
-    };
-
-    await sendNotifications(notificationPayload as any);
-  }
+  await sendNotifications(notificationPayload as any);
 
   return reserveData;
 
@@ -57,8 +53,8 @@ const ReservationVerifyFromDB = async (id: string, payload: any) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details")
   }
   // get user and agency details
-  const [userDetail, agencyDetail] = await Promise.all([
-    User.findById(result?.userId),
+  const [userDetail] = await Promise.all([
+    User.findById(result?.user),
     // @ts-ignore
     User.findById(result?.carId?.agencyId),
   ])

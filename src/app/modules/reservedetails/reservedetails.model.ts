@@ -23,14 +23,7 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: String,
       required: true,
     },
-    drivingLicense: {
-      type: [String],
-      required: true,
-    },
-    yourID: {
-      type: [String],
-      required: true,
-    },
+
     payload: {
       type: Schema.Types.Mixed,
       enum: ['Request', 'InProgress', 'Assigned', 'Delivered', 'Cancelled'],
@@ -41,7 +34,7 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: String,
       required: false,
     },
-    userId: {
+    user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: false,
