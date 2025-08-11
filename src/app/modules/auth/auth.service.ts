@@ -108,7 +108,9 @@ const forgetPasswordToDB = async (email: string) => {
 //verify email
 const verifyEmailToDB = async (payload: IVerifyEmail) => {
   const { email, oneTimeCode } = payload;
-  const isExistUser = await User.findOne({ email }).select('+authentication');
+
+  // Find the user and check if the OTP exists
+  const isExistUser = await User.findOne({ email }).select("+authentication");
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
@@ -116,31 +118,30 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   if (!oneTimeCode) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Please give the otp, check your email we send a code'
+      "Please provide the OTP sent to your email"
     );
   }
 
+  // Check if the provided OTP matches the stored OTP
   if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'You provided wrong otp');
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid OTP");
   }
 
   const date = new Date();
   if (date > isExistUser.authentication?.expireAt) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Otp already expired, Please try again'
+      "OTP has expired, please try again"
     );
   }
-
   let message;
   let data;
-
   if (!isExistUser.verified) {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },
       { verified: true, authentication: { oneTimeCode: null, expireAt: null } }
     );
-    message = 'Email verify successfully';
+    message = "Email verify successfully";
   } else {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },
@@ -161,7 +162,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       expireAt: new Date(Date.now() + 5 * 60000),
     });
     message =
-      'Verification Successful: Please securely store and utilize this code for reset password';
+      "Verification Successful: Please securely store and utilize this code for reset password";
     data = createToken;
   }
   return { data, message };
