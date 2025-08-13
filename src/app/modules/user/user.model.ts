@@ -55,11 +55,11 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     drivingLicense: {
       type: [String],
-      required: true,
+      required: false,
     },
     yourID: {
       type: [String],
-      required: true,
+      required: false,
     },
     adminApproval: {
       type: Boolean,

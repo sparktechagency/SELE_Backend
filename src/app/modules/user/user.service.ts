@@ -10,8 +10,8 @@ import { User } from './user.model';
 import { sendNotifications } from '../../../helpers/notificationSender';
 import { USER_ROLES } from '../../../enums/user';
 
-const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
-  const createUser = await User.create(payload);
+const createUserToDB = async (role: string, payload: Partial<IUser>): Promise<IUser> => {
+  const createUser = await User.create({ ...payload, role });
   if (!createUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create user');
   }
@@ -137,14 +137,12 @@ const verifyOTPIntoDB = async (email: string, otp: number): Promise<boolean> => 
  * Approve a user by ID — only SUPER_ADMIN can approve.
  */
 const adminApprovalUserIntoDB = async (user: JwtPayload, id: string) => {
-
   if (user.role !== USER_ROLES.SUPER_ADMIN) {
     throw new ApiError(
       StatusCodes.FORBIDDEN,
       'You do not have permission to approve users.'
     );
   }
-
   const targetUser = await User.findById(id);
   if (!targetUser) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User doesn't exist!");
@@ -153,6 +151,24 @@ const adminApprovalUserIntoDB = async (user: JwtPayload, id: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User is already approved.');
   }
 
+  const notificationPayload = {
+    sender: user._id,
+    receiver: targetUser._id,
+    title: `🎆 Your Account Approved by Admin`,
+    message: `🎆 Your Account Approved by Admin`,
+    isRead: false,
+    filePath: 'user',
+    referenceId: targetUser._id,
+  };
+  await sendNotifications(notificationPayload as any);
+  const adminEmailTemplate = emailTemplate.approvedEmailTemplate({
+    name: targetUser.name,
+    email: targetUser.email,
+  });
+  emailHelper.sendEmail(adminEmailTemplate);
+
+
+
   await User.findByIdAndUpdate(
     id,
     { adminApproval: true },
@@ -160,7 +176,7 @@ const adminApprovalUserIntoDB = async (user: JwtPayload, id: string) => {
   );
 
   return {
-    message: 'User approved successfully.'
+    message: '🎆 Your Account Approved by Admin'
   };
 };
 

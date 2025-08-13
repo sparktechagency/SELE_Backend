@@ -10,8 +10,8 @@ export type IUser = {
   location: string;
   image?: string;
   verified: boolean;
-  drivingLicense: [string];
-  yourID: [string];
+  drivingLicense?: [string];
+  yourID?: [string];
   adminApproval: boolean;
   isDeleted: boolean;
   authentication?: {

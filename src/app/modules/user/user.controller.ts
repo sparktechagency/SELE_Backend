@@ -5,15 +5,16 @@ import { getSingleFilePath } from '../../../shared/getFilePath';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 import ApiError from '../../../errors/ApiError';
+import { USER_ROLES } from '../../../enums/user';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { ...userData } = req.body;
-    const result = await UserService.createUserToDB(userData);
-
+    const { role, ...userData } = req.body;
+    const adminApproval = role === USER_ROLES.AGENCY ? true : false;
+    const result = await UserService.createUserToDB(role,{ ...userData, adminApproval });
     sendResponse(res, {
       success: true,
-      statusCode: StatusCodes.OK,
+      statusCode: StatusCodes.CREATED,
       message: 'User created successfully',
       data: result,
     });

@@ -77,10 +77,29 @@ const adminEmailTemplate = (values: { name: string; email: string }) => {
   return data
 }
 
+const approvedEmailTemplate = (values: { name: string; email: string }) => {
+  const data = {
+    to: values.email,
+    subject: "🎆 Your Account Approved by Admin",
+    html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+    <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <img src="https://res.cloudinary.com/dabd4udau/image/upload/v1746096768/k8ed3bz0rys1u3fmyzhp.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
+        <div style="text-align: center;">
+            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">🎆 Your Account Approved by Admin</p>
+            <div style="background-color: #007BFF; width:120px; padding: 10px; text-align: center; border-radius: 8px; color: #fff; font-size: 25px; letter-spacing: 2px; margin: 20px auto;">${values.name}</div>
+            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Email: ${values.email}</p>
+            <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your account has been approved by admin.</p> 
+        </div>
+    </div>
+</body>`,
+  }
+  return data
+}
 
 export const emailTemplate = {
   createAccount,
   resetPassword,
   resendOtp,
-  adminEmailTemplate
+  adminEmailTemplate,
+  approvedEmailTemplate
 };
