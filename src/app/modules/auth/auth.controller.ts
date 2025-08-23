@@ -141,7 +141,17 @@ const deleteUserByEmailAndPassword = catchAsync(async (req: Request, res: Respon
 });
 
 
-
+// get all unapproved users
+const getAllUnapprovedUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.getAllUnapprovedUsersIntoDB(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    meta: result.meta,
+    message: 'User retrieved successfully',
+    data: result.data,
+  });
+});
 
 
 export const AuthController = {
@@ -155,4 +165,5 @@ export const AuthController = {
   getSingleUser,
   newAccessToken,
   deleteUserByEmailAndPassword,
+  getAllUnapprovedUsers,
 };

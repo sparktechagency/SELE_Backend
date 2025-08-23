@@ -18,6 +18,7 @@ import { ResetToken } from '../resetToken/resetToken.model';
 import { User } from '../user/user.model';
 import { getBonzahToken } from '../../../util/getBonzahToken';
 import { USER_ROLES } from '../../../enums/user';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -46,7 +47,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
 
   if (!user.adminApproval) {
     throw new ApiError(
-      StatusCodes.BAD_REQUEST,
+      StatusCodes.NOT_ACCEPTABLE,
       'Your Driving License and Id is not approved. Please wait for admin approval.'
     );
   }
@@ -118,7 +119,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   const { email, oneTimeCode } = payload;
 
   // Find the user and check if the OTP exists
-  const isExistUser = await User.findOne({ email }).select("+authentication");
+  const isExistUser = await User.findOne({ email }).select('+authentication');
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
@@ -126,20 +127,20 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
   if (!oneTimeCode) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "Please provide the OTP sent to your email"
+      'Please provide the OTP sent to your email'
     );
   }
 
   // Check if the provided OTP matches the stored OTP
   if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid OTP");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid OTP');
   }
 
   const date = new Date();
   if (date > isExistUser.authentication?.expireAt) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "OTP has expired, please try again"
+      'OTP has expired, please try again'
     );
   }
   let message;
@@ -149,7 +150,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       { _id: isExistUser._id },
       { verified: true, authentication: { oneTimeCode: null, expireAt: null } }
     );
-    message = "Email verify successfully";
+    message = 'Email verify successfully';
   } else {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },
@@ -170,7 +171,7 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       expireAt: new Date(Date.now() + 5 * 60000),
     });
     message =
-      "Verification Successful: Please securely store and utilize this code for reset password";
+      'Verification Successful: Please securely store and utilize this code for reset password';
     data = createToken;
   }
   return { data, message };
@@ -304,7 +305,6 @@ const changePasswordToDB = async (
   await User.findOneAndUpdate({ _id: user.id }, updateData, { new: true });
 };
 
-
 // delete user
 const deleteUserToDB = async (user: JwtPayload, password: string) => {
   const isExistUser = await User.findById(user.id).select('+password');
@@ -363,9 +363,11 @@ const getSingleUserFromDB = async (user: JwtPayload) => {
   return result;
 };
 
-
-const deleteUserByEmailAndPassword = async (email: string, password: string) => {
-  const isExistUser = await User.findOne({ email }).select("+password");
+const deleteUserByEmailAndPassword = async (
+  email: string,
+  password: string
+) => {
+  const isExistUser = await User.findOne({ email }).select('+password');
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
@@ -375,16 +377,26 @@ const deleteUserByEmailAndPassword = async (email: string, password: string) => 
     password &&
     !(await User.isMatchPassword(password, isExistUser.password))
   ) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Password is incorrect");
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is incorrect');
   }
-  const updateUser = await User.findByIdAndUpdate(isExistUser._id, { isDeleted: true });
+  const updateUser = await User.findByIdAndUpdate(isExistUser._id, {
+    isDeleted: true,
+  });
   if (!updateUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
   return;
 };
 
+// get all unapproved users
+const getAllUnapprovedUsersIntoDB = async (query: Record<string, any>) => {
+  const result = new QueryBuilder(User.find({ adminApproval: false }), query)
 
+  const data = await result.modelQuery;  
+  const meta = await result.getPaginationInfo(); 
+
+  return { data, meta };
+};
 
 
 export const AuthService = {
@@ -398,4 +410,5 @@ export const AuthService = {
   getSingleUserFromDB,
   newAccessTokenToUser,
   deleteUserByEmailAndPassword,
+  getAllUnapprovedUsersIntoDB,
 };

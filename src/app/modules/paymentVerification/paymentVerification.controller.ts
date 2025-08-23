@@ -6,6 +6,7 @@ import { paymentVerificationModel } from './paymentVerification.model';
 import { CarsModel } from '../cars/cars.model';
 import ApiError from '../../../errors/ApiError';
 import { User } from '../user/user.model';
+import config from '../../../config';
 
 const createCarPaymentSession = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
@@ -30,8 +31,8 @@ const createCarPaymentSession = catchAsync(
         },
       ],
       mode: 'payment',
-      success_url: `https://admin.selerental.com/payment-success`,
-      cancel_url: `https://admin.selerental.com/cancel`,
+      success_url: config.stripe.CONNECTED_ACCOUNT_SUCCESS_URL,
+      cancel_url: config.stripe.CONNECTED_ACCOUNT_FAILD_URL,
       metadata: { userId, carId, reserveId },
     });
 
@@ -90,7 +91,7 @@ const createAccountIntoStripe = catchAsync(
       business_profile: {
         mcc: 7299,
         product_description: 'Car rental services',
-        url: 'https://admin.selerental.com/bank-account-create',
+        url: config.stripe.CONNECTED_ACCOUNT_CREATE_URL,
       },
     });
     if (!account) {
@@ -100,8 +101,8 @@ const createAccountIntoStripe = catchAsync(
     // Create an account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: 'https://admin.selerental.com/bank-account-create',
-      return_url: 'https://admin.selerental.com/bank-account-create',
+      refresh_url: config.stripe.CONNECTED_ACCOUNT_CREATE_URL,
+      return_url: config.stripe.CONNECTED_ACCOUNT_CREATE_URL,
       type: 'account_onboarding',
     });
     const updateAccount = await User.findByIdAndUpdate(

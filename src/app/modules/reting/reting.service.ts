@@ -34,9 +34,9 @@ const getAllRatingFromDB = async (
     paginationHelper.calculatePagination(paginationOptions);
 
   // Validate carId format
-  if (!Types.ObjectId.isValid(carId)) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid car ID format');
-  }
+  // if (!Types.ObjectId.isValid(carId)) {
+  //   throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid car ID format');
+  // }
 
   const query = { carId: new Types.ObjectId(carId) };
 

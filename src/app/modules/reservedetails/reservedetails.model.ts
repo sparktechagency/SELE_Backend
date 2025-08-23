@@ -34,10 +34,10 @@ const reserveDetailsSchema = new Schema<IReserveDetails>(
       type: String,
       required: false,
     },
-    user: {
+    userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: false,
+      required: true,
     },
     trxId: {
       type: String,

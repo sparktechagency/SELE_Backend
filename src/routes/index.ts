@@ -77,7 +77,7 @@ const apiRoutes = [
   {
     path: '/',
     route: DashboardRoutes,
-  }
+  },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

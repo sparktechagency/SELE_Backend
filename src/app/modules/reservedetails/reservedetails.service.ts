@@ -12,61 +12,95 @@ import { User } from '../user/user.model';
 import { stripe } from '../../../config/stripe';
 import mongoose, { Types } from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { isoToNormal } from '../../../helpers/isoToNormal';
+import config from '../../../config';
+import { JwtPayload } from 'jsonwebtoken';
 // create reserve Data
 
-const createReserveDetails = async (payload: IReserveDetails, user: Types.ObjectId) => {
+const createReserveDetails = async (
+  payload: IReserveDetails,
+  userId: JwtPayload
+) => {
+  const { carId, bookingType, startDate, endDate } = payload;
   const orderId = Math.floor(100000 + Math.random() * 900000);
-  const newData = {
-    ...payload,
-    orderId,
-  };
-  const newPayload = { ...newData, user };
+  const newData = { ...payload, orderId, userId: userId.id };
+  const totalDay = Math.ceil(
+    (new Date(endDate!).getTime() - new Date(startDate!).getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
 
-  if (payload.carId) {
-    const isBooked = await ReserveDetailsModel.findOne({
-      carId: payload.carId,
-      startDate: { $lte: payload.endDate },
-      endDate: { $gte: payload.startDate },
+  const car = await CarsModel.findById(carId);
+  if (!car) throw new ApiError(StatusCodes.NOT_FOUND, 'Car not found');
+
+  const totalPrice = totalDay * car.price;
+  const isInstant = bookingType === 'Instant';
+
+  let paymentLink: string | null = null;
+  if (isInstant) {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `Reservation for ${car.carModel}`,
+            },
+            unit_amount: totalPrice * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: config.stripe.INITIAL_PAYMENT,
+      cancel_url: config.stripe.INITIAL_PAYMENT_CANCEL,
     });
-    if (isBooked) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, `All ready booked this car from ${isoToNormal(isBooked.startDate.toString())} to ${isoToNormal(isBooked.endDate.toString())}`)
-    }
-  }
-  const reserveData = await ReserveDetailsModel.create(newPayload);
-  if (!reserveData) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
-  }
-  const [userDetail, carDetail] = await Promise.all([
-    User.findById(user),
-    CarsModel.findById(payload.carId),
-  ])
-  const notificationPayload = {
-    sender: userDetail?._id,
-    receiver: carDetail?.agencyId,
-    title: 'New Reserve Request',
-    message: `${userDetail?.name} submitted a new reservation on ${new Date().toLocaleDateString()}`,
-    isRead: false,
-    filePath: 'reservation',
-    referenceId: reserveData._id,
-  };
-  await sendNotifications(notificationPayload as any);
-  return reserveData;
 
+    paymentLink = session.url;
+    // @ts-ignore
+    newData.paymentLink = paymentLink;
+  }
+
+  const reserveData = await ReserveDetailsModel.create(newData);
+  if (!reserveData)
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Can't create Reserve Details");
+
+  if (isInstant) {
+    const [userDetail, carDetail] = await Promise.all([
+      User.findById(userId.id),
+      CarsModel.findById(carId),
+    ]);
+
+    const notificationPayload = {
+      sender: userDetail?._id,
+      receiver: carDetail?.agencyId,
+      title: 'New Reserve Request',
+      message: `${
+        userDetail?.name
+      } submitted a new reservation on ${new Date().toLocaleDateString()}`,
+      isRead: false,
+      filePath: 'reservation',
+      referenceId: reserveData._id,
+    };
+    await sendNotifications(notificationPayload as any);
+  }
+
+  return { reserveData, paymentLink };
 };
 
 // # do verify from admin
 const ReservationVerifyFromDB = async (id: string, payload: any) => {
-  const result = await ReserveDetailsModel.findByIdAndUpdate(id, payload, { new: true }).populate({ path: "carId", select: "agencyId" });
+  const result = await ReserveDetailsModel.findByIdAndUpdate(id, payload, {
+    new: true,
+  }).populate({ path: 'carId', select: 'agencyId' });
   if (!result) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details")
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Can't find Reserve Details");
   }
   // get user and agency details
   const [userDetail, agencyDetail] = await Promise.all([
-    User.findById(result?.user),
+    User.findById(result?.userId),
     // @ts-ignore
     User.findById(result?.carId?.agencyId),
-  ])
+  ]);
 
   const notificationPayload = {
     sender: userDetail?._id,
@@ -78,10 +112,8 @@ const ReservationVerifyFromDB = async (id: string, payload: any) => {
     referenceId: result?._id,
   };
   await sendNotifications(notificationPayload as any);
-  return result
-}
-
-
+  return result;
+};
 
 // get all reserve data
 /// agency and rating details
@@ -127,7 +159,7 @@ const getAllReserveData = async (
       },
       {
         path: 'userId',
-        select: 'name email image description location role ',
+        select: 'name email image description location role yourID drivingLicense',
       },
     ]);
 
@@ -479,7 +511,7 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
       // @ts-ignore
       new Types.ObjectId(reserveDetails?.carId?.agencyId)
     );
-    // 
+    //
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
     }
@@ -495,7 +527,7 @@ const updateReserveDetails = async (id: string, data: IReserveDetails) => {
     const totalDay = Math.ceil(
       (new Date(reserveDetails?.endDate!).getTime() -
         new Date(reserveDetails?.startDate!).getTime()) /
-      (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
     );
     // @ts-ignore
     const totalPrice = totalDay * reserveDetails?.carId?.price;
@@ -718,8 +750,6 @@ const getReserveStatistics = async (agencyId: string) => {
     },
   };
 };
-
-
 
 export const ReserveDetailsServices = {
   createReserveDetails,

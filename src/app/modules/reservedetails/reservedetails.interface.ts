@@ -5,7 +5,7 @@ export type IReserveDetails = {
   carId: Types.ObjectId;
   startDate: string;
   endDate: string;
-  user: Types.ObjectId;
+  userId: Types.ObjectId;
   payload: progressStatus;
   orderId?: String;
   createdAt?: Date;
@@ -27,5 +27,5 @@ export type IReserveDetails = {
   insuranceAmount?: string;
   isInsured?: boolean;
   isVerified?: boolean;
-  bookingType: "Instant" | "Reservation";
+  bookingType: 'Instant' | 'Reservation';
 };

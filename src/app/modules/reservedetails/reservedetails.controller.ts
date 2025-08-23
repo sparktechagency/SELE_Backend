@@ -5,9 +5,9 @@ import sendResponse from '../../../shared/sendResponse';
 import { getMultipleFilesPath } from '../../../shared/getFilePath';
 
 const createReserveDetails = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user.id;
+  const user = req.user;
   const data = req.body;
-  const result = await ReserveDetailsServices.createReserveDetails(data, user);
+  const result = await ReserveDetailsServices.createReserveDetails(data, user!);
   sendResponse(res, {
     statusCode: 201,
     success: true,

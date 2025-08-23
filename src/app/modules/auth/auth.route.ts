@@ -50,7 +50,11 @@ router.post("/resend-otp",
   AuthController.resendOtp
 )
 
-
+// get all unapproved users
+router.get("/unapproved-users",
+  auth(USER_ROLES.SUPER_ADMIN),
+  AuthController.getAllUnapprovedUsers
+)
 
 router.delete(
   '/public/delete-user',

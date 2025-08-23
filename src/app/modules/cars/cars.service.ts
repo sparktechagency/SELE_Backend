@@ -4,14 +4,25 @@ import { ICars } from './cars.interface';
 import { CarsModel } from './cars.model';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { User } from '../user/user.model';
 // create car
 const createCarIntoDB = async (payload: ICars, agencyId: string) => {
-  const car = await CarsModel.create({ ...payload, agencyId });
-  if (!car) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create car');
+  const agency = await User.findById(agencyId)
+    .select('latitude longitude')
+    .exec();
+
+  if (!agency?.latitude || !agency?.longitude) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Please update your profile information'
+    );
   }
-  return car;
+
+  const car = new CarsModel({ ...payload, agencyId });
+  return car.save();
 };
+
+//
 const getAllCarsFromDB = async (filters: any) => {
   const page = filters.page ? Number(filters.page) : 1;
   const limit = filters.limit ? Number(filters.limit) : 10;
