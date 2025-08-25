@@ -9,6 +9,7 @@ const payload = {
   role: USER_ROLES.SUPER_ADMIN,
   password: config.super_admin.password,
   confirmPassword: config.super_admin.confirmPassword,
+  adminApproval: true,
   verified: true,
   location: 'Headquarters',
 };
