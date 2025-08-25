@@ -97,7 +97,7 @@ const userSchema = new Schema<IUser, UserModal>(
       stripeAccountId: { type: String },
       externalAccountId: { type: String },
       currency: { type: String },
-      accountUrl: { type: String }
+      accountUrl: { type: String },
     },
   },
   { timestamps: true }
@@ -135,6 +135,9 @@ userSchema.pre('save', async function (next) {
     this.password,
     Number(config.bcrypt_salt_rounds)
   );
+  if (this.role === USER_ROLES.SUPER_ADMIN) {
+    this.adminApproval = true;
+  }
   next();
 });
 
