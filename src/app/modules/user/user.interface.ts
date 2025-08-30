@@ -29,6 +29,7 @@ export type IUser = {
     currency: string;
     accountUrl: string;
   };
+  unApprove?: boolean;
 };
 
 export type UserModal = {

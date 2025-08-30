@@ -52,10 +52,17 @@ const loginUserFromDB = async (payload: ILoginData) => {
     );
   }
 
+  if (user.role === USER_ROLES.USER && user.unApprove) {
+    throw new ApiError(
+      StatusCodes.NOT_ACCEPTABLE,
+      'Your account has been deactivated. Please contact support.'
+    );
+  }
+
   if (user.isDeleted) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      'Your account has been deactivated. Please contact support.'
+      'Your account has been deleted. Please contact support.'
     );
   }
 
@@ -390,14 +397,16 @@ const deleteUserByEmailAndPassword = async (
 
 // get all unapproved users
 const getAllUnapprovedUsersIntoDB = async (query: Record<string, any>) => {
-  const result = new QueryBuilder(User.find({ adminApproval: false }), query)
+  const result = new QueryBuilder(
+    User.find({ adminApproval: false, unApprove: false }),
+    query
+  );
 
-  const data = await result.modelQuery;  
-  const meta = await result.getPaginationInfo(); 
+  const data = await result.modelQuery;
+  const meta = await result.getPaginationInfo();
 
   return { data, meta };
 };
-
 
 export const AuthService = {
   verifyEmailToDB,

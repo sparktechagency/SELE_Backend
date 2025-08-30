@@ -84,4 +84,17 @@ const userApproval = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const UserController = { createUser, getUserProfile, updateProfile, verifyUserOTP, userApproval };
+
+const unApproveUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.upApprovedFromDB(req.user.id, req.params.id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User unapproved successfully',
+    data: result,
+  });
+});
+
+
+export const UserController = { createUser, getUserProfile, updateProfile, verifyUserOTP, userApproval, unApproveUser };

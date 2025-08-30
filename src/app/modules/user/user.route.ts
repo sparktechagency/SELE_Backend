@@ -11,13 +11,15 @@ const router = express.Router();
 
 router
   .route('/profile')
-  .get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER, USER_ROLES.AGENCY), UserController.getUserProfile)
+  .get(
+    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER, USER_ROLES.AGENCY),
+    UserController.getUserProfile
+  )
   .patch(
     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER, USER_ROLES.AGENCY),
     fileUploadHandler(),
     (req: Request, res: Response, next: NextFunction) => {
       if (req.body.data) {
-
         // Parse the data from the request body
         const parsedData = JSON.parse(req.body.data);
 
@@ -53,28 +55,35 @@ router
     }
   );
 
-router
-  .route('/')
-  .post(
-    fileUploadHandler(),
-    (req: Request, _res: Response, next: NextFunction) => {
-      const yourID = getMultipleFilesPath(req.files, 'yourID' as any);
-      const drivingLicense = getMultipleFilesPath(req.files, 'drivingLicense' as any);
-      req.body = {
-        ...req.body,
-        yourID,
-        drivingLicense,
-      };
-      next();
-    },
-    validateRequest(UserValidation.createUserZodSchema),
-    UserController.createUser
-  );
+router.route('/').post(
+  fileUploadHandler(),
+  (req: Request, _res: Response, next: NextFunction) => {
+    const yourID = getMultipleFilesPath(req.files, 'yourID' as any);
+    const drivingLicense = getMultipleFilesPath(
+      req.files,
+      'drivingLicense' as any
+    );
+    req.body = {
+      ...req.body,
+      yourID,
+      drivingLicense,
+    };
+    next();
+  },
+  validateRequest(UserValidation.createUserZodSchema),
+  UserController.createUser
+);
 router.post('/verify-otp', UserController.verifyUserOTP);
 // user approval
 router.patch(
   '/user-approval/:id',
   auth(USER_ROLES.SUPER_ADMIN),
   UserController.userApproval
-)
+);
+router.patch(
+  '/un-approve/:id',
+  auth(USER_ROLES.SUPER_ADMIN),
+  UserController.unApproveUser
+);
+
 export const UserRoutes = router;

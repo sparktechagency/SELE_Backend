@@ -10,7 +10,10 @@ import { User } from './user.model';
 import { sendNotifications } from '../../../helpers/notificationSender';
 import { USER_ROLES } from '../../../enums/user';
 
-const createUserToDB = async (role: string, payload: Partial<IUser>): Promise<IUser> => {
+const createUserToDB = async (
+  role: string,
+  payload: Partial<IUser>
+): Promise<IUser> => {
   const createUser = await User.create({ ...payload, role });
   if (!createUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create user');
@@ -60,7 +63,6 @@ const createUserToDB = async (role: string, payload: Partial<IUser>): Promise<IU
   });
   emailHelper.sendEmail(adminEmailTemplate);
 
-
   return createUser;
 };
 
@@ -98,23 +100,25 @@ const updateProfileToDB = async (
   return updateDoc;
 };
 
-
-
 ///Otp Verification
-const verifyOTPIntoDB = async (email: string, otp: number): Promise<boolean> => {
+const verifyOTPIntoDB = async (
+  email: string,
+  otp: number
+): Promise<boolean> => {
   const user = await User.findOne({ email }).select('+authentication');
 
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
   }
 
-
   if (!user.authentication) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Authentication field is missing');
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Authentication field is missing'
+    );
   }
 
   const { oneTimeCode, expireAt } = user.authentication;
-
 
   if (Date.now() > new Date(expireAt).getTime()) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'OTP expired');
@@ -167,26 +171,36 @@ const adminApprovalUserIntoDB = async (user: JwtPayload, id: string) => {
   });
   emailHelper.sendEmail(adminEmailTemplate);
 
-
-
-  await User.findByIdAndUpdate(
-    id,
-    { adminApproval: true },
-    { new: true }
-  );
+  await User.findByIdAndUpdate(id, { adminApproval: true }, { new: true });
 
   return {
-    message: '🎆 Your Account Approved by Admin'
+    message: '🎆 Your Account Approved by Admin',
   };
 };
 
-
-
+const upApprovedFromDB = async (user: JwtPayload, id: string) => {
+  // if (user.role !== USER_ROLES.SUPER_ADMIN) {
+  //   throw new ApiError(
+  //     StatusCodes.FORBIDDEN,
+  //     'You do not have permission to approve users.'
+  //   );
+  // }
+  const result = await User.findByIdAndUpdate(
+    id,
+    { unApprove: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User doesn't exist!");
+  }
+  return result;
+};
 
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
   updateProfileToDB,
   verifyOTPIntoDB,
-  adminApprovalUserIntoDB
+  adminApprovalUserIntoDB,
+  upApprovedFromDB,
 };

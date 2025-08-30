@@ -46,22 +46,15 @@ const getAllNotificationsIntoDB = async (
   query: Record<string, any>,
   user: JwtPayload
 ) => {
-  const baseQuery = Notification.find({ userId: user.id });
+  const queryBuilder = new QueryBuilder(
+    Notification.find({ receiver: user.id }),
+    query
+  );
+  const result = await queryBuilder.modelQuery;
+  const meta = await queryBuilder.getPaginationInfo();
 
-  const notificationQuery = new QueryBuilder(baseQuery, query);
-
-  notificationQuery.search(['title', 'message']).filter().sort().paginate();
-
-  const notifications = await notificationQuery.modelQuery;
-
-  const paginationInfo = await notificationQuery.getPaginationInfo();
-
-  return {
-    meta: paginationInfo,
-    data: notifications,
-  };
+  return { data: result, meta };
 };
-
 
 export const NotificationServices = {
   createNotification,

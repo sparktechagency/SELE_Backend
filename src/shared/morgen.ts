@@ -17,7 +17,7 @@ const successHandler = morgan(successResponseFormat, {
   skip: (req: Request, res: Response) => res.statusCode >= 400,
   stream: { write: (message: string) => logger.info(message.trim()) },
 });
-// 
+//
 
 const errorHandler = morgan(errorResponseFormat, {
   skip: (req: Request, res: Response) => res.statusCode < 400,
