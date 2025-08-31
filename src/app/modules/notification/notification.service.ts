@@ -18,7 +18,7 @@ const createNotification = async (notification: INotification) => {
 };
 
 const getNotificationsByUserId = async (userId: string) => {
-  return await Notification.find({ userId }).sort({ createdAt: -1 });
+  return await Notification.find({ receiver: userId }).sort({ createdAt: -1 });
 };
 
 const updateNotification = async (notificationId: string, userId: string) => {
@@ -26,7 +26,7 @@ const updateNotification = async (notificationId: string, userId: string) => {
   const notification = await Notification.findOneAndUpdate(
     {
       _id: new Types.ObjectId(notificationId),
-      userId: new Types.ObjectId(userId),
+      receiver: new Types.ObjectId(userId),
     },
     { isRead: true },
     { new: true, runValidators: true }
