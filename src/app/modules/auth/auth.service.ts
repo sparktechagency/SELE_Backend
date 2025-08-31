@@ -397,10 +397,7 @@ const deleteUserByEmailAndPassword = async (
 
 // get all unapproved users
 const getAllUnapprovedUsersIntoDB = async (query: Record<string, any>) => {
-  const result = new QueryBuilder(
-    User.find({ adminApproval: false, unApprove: false }),
-    query
-  );
+  const result = new QueryBuilder(User.find({ adminApproval: false }), query);
 
   const data = await result.modelQuery;
   const meta = await result.getPaginationInfo();
