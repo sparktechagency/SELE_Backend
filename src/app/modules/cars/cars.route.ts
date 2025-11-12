@@ -68,7 +68,7 @@ router
   );
   // get all
   
-router.route('/all').get(CarsController.getAllCars);
+router.route('/').get(CarsController.getAllCars);
 // get all cars by agency id
 router
   .route('/agency')
