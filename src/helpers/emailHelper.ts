@@ -4,27 +4,30 @@ import { errorLogger, logger } from '../shared/logger';
 import { ISendEmail } from '../types/email';
 
 const transporter = nodemailer.createTransport({
-  host: config.email.host,
-  port: Number(config.email.port),
-  secure: false,
+  host: 'smtp.hostinger.com',
+  port: 465, // true for 465, false for other ports
+  secure: true, // use TLS
   auth: {
-    user: config.email.user,
-    pass: config.email.pass,
+    user: 'sele1rental.com@www.selerental.com',
+    pass: 'Thisshitcrazy1$',
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
 const sendEmail = async (values: ISendEmail) => {
   try {
     const info = await transporter.sendMail({
-      from: `"SELE" ${config.email.from}`,
+      from: `"SELE" <sele1rental.com@www.selerental.com>`,
       to: values.to,
       subject: values.subject,
       html: values.html,
     });
-
-    logger.info('Mail send successfully', info.accepted);
+    console.log('info', info);
+    logger.info('✅ Email sent successfully!', info.messageId);
   } catch (error) {
-    errorLogger.error('Email', error);
+    errorLogger.error('❌ Email send failed:', error);
   }
 };
 

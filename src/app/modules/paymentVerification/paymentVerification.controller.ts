@@ -7,6 +7,7 @@ import { CarsModel } from '../cars/cars.model';
 import ApiError from '../../../errors/ApiError';
 import { User } from '../user/user.model';
 import config from '../../../config';
+import sendResponse from '../../../shared/sendResponse';
 
 const createCarPaymentSession = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
@@ -50,7 +51,8 @@ const createCarPaymentSession = catchAsync(
       reserveId,
     });
     await payment.save();
-    res.status(StatusCodes.OK).json({
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
       success: true,
       message: 'Payment session created successfully',
       data: {

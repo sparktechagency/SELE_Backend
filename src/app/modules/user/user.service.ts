@@ -45,7 +45,7 @@ const createUserToDB = async (
     throw new ApiError(StatusCodes.NOT_FOUND, 'Super admin not found');
   }
 
-  // need to send notification to admin using sociat and email
+  // need to send notification to admin using social and email
   const notificationPayload = {
     sender: createUser._id,
     receiver: superAdmin._id,

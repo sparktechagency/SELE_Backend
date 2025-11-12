@@ -5,18 +5,8 @@ import { createLogger, format, transports } from 'winston';
 const { combine, timestamp, label, printf, colorize } = format;
 
 const myFormat = printf(
-  ({
-    level,
-    message,
-    label,
-    timestamp,
-  }: {
-    level: string;
-    message: string;
-    label: string;
-    timestamp: string;
-  }) => {
-    const date = new Date(timestamp);
+  ({ level, message, label, timestamp }) => {
+    const date = new Date(timestamp as string);
     const formattedDate = date.toLocaleDateString('en-GB'); // DD/MM/YYYY
     const formattedTime = date.toLocaleTimeString(); // HH:MM:SS
 
