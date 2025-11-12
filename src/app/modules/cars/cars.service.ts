@@ -30,60 +30,57 @@ const getAllCarsFromDB = async (filters: any) => {
 
   const match: any = {};
 
-  // Price filter - IMPROVED IMPLEMENTATION
+  // Price filter
   if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
     match.price = {};
 
     if (filters.minPrice !== undefined && filters.minPrice !== '') {
       const minPriceValue = String(filters.minPrice).replace(/[^0-9.]/g, '');
       const minPrice = Number(minPriceValue);
-      if (!isNaN(minPrice)) {
-        match.price.$gte = minPrice;
-      }
+      if (!isNaN(minPrice)) match.price.$gte = minPrice;
     }
 
     if (filters.maxPrice !== undefined && filters.maxPrice !== '') {
       const maxPriceValue = String(filters.maxPrice).replace(/[^0-9.]/g, '');
       const maxPrice = Number(maxPriceValue);
-      if (!isNaN(maxPrice)) {
-        match.price.$lte = maxPrice;
-      }
+      if (!isNaN(maxPrice)) match.price.$lte = maxPrice;
     }
 
-    if (Object.keys(match.price).length === 0) {
-      delete match.price;
-    }
+    if (Object.keys(match.price).length === 0) delete match.price;
   }
 
-  // Kilometres
+  // Kilometres filter
   if (filters.kilometresData) {
     const kmValue = Number(filters.kilometresData);
-    if (!isNaN(kmValue)) {
-      match.kilometresData = kmValue;
-    }
+    if (!isNaN(kmValue)) match.kilometresData = kmValue;
   }
 
-  // Brand
-  if (filters.brandName) {
+  // Brand filter (with ObjectId validation)
+  if (
+    filters.brandName?.trim() &&
+    mongoose.Types.ObjectId.isValid(filters.brandName)
+  ) {
     match.brandName = new mongoose.Types.ObjectId(filters.brandName);
   }
 
-  // Transmission
-  if (filters.transmission) {
-    match.transmission = filters.transmission;
-  }
-
-  // Category
-  if (filters.category) {
+  // Category filter (with ObjectId validation)
+  if (
+    filters.category?.trim() &&
+    mongoose.Types.ObjectId.isValid(filters.category)
+  ) {
     match.category = new mongoose.Types.ObjectId(filters.category);
   }
+
+  // Transmission filter
+  if (filters.transmission) match.transmission = filters.transmission;
 
   const sortBy = filters.sortBy || 'createdAt';
   const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
 
   const cars = await CarsModel.aggregate([
     { $match: match },
-    // Get car owner details (userDetails)
+
+    // Get agency/user details
     {
       $lookup: {
         from: 'users',
@@ -103,10 +100,9 @@ const getAllCarsFromDB = async (filters: any) => {
         ],
       },
     },
-    {
-      $unwind: '$userDetails',
-    },
-    // Get reviews (with reviewer details)
+    { $unwind: '$userDetails' },
+
+    // Get reviews with reviewer details
     {
       $lookup: {
         from: 'ratings',
@@ -120,20 +116,10 @@ const getAllCarsFromDB = async (filters: any) => {
               localField: 'userId',
               foreignField: '_id',
               as: 'reviewerDetails',
-              pipeline: [
-                {
-                  $project: {
-                    name: 1,
-                    location: 1,
-                    image: 1,
-                  },
-                },
-              ],
+              pipeline: [{ $project: { name: 1, location: 1, image: 1 } }],
             },
           },
-          {
-            $unwind: '$reviewerDetails',
-          },
+          { $unwind: '$reviewerDetails' },
           {
             $project: {
               rating: 1,
@@ -146,7 +132,8 @@ const getAllCarsFromDB = async (filters: any) => {
         ],
       },
     },
-    // Get brand details
+
+    // Brand details
     {
       $lookup: {
         from: 'brands',
@@ -155,10 +142,9 @@ const getAllCarsFromDB = async (filters: any) => {
         as: 'brandName',
       },
     },
-    {
-      $unwind: '$brandName',
-    },
-    // Get category details
+    { $unwind: '$brandName' },
+
+    // Category details
     {
       $lookup: {
         from: 'categories',
@@ -167,9 +153,8 @@ const getAllCarsFromDB = async (filters: any) => {
         as: 'category',
       },
     },
-    {
-      $unwind: '$category',
-    },
+    { $unwind: '$category' },
+
     // Calculate average rating and total reviews
     {
       $addFields: {
@@ -183,6 +168,8 @@ const getAllCarsFromDB = async (filters: any) => {
         totalReviews: { $size: '$reviews' },
       },
     },
+
+    // Sorting, pagination
     { $sort: { [sortBy]: sortOrder } },
     { $skip: skip },
     { $limit: limit },
