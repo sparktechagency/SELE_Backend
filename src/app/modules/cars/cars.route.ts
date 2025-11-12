@@ -65,10 +65,10 @@ router
     },
     auth(USER_ROLES.AGENCY),
     CarsController.createCar
-  )
+  );
   // get all
-  .get(CarsController.getAllCars);
-
+  
+router.route('/all').get(CarsController.getAllCars);
 // get all cars by agency id
 router
   .route('/agency')
