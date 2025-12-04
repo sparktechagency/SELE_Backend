@@ -1,6 +1,5 @@
 name: SELE App Backend Deploy
 
-# Trigger on main branch push or PR
 on:
   push:
     branches: [main]
@@ -8,31 +7,30 @@ on:
     branches: [main]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      #  Checkout code
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      #  Setup Node.js
-      - name: Set up Node.js
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
 
-      #  Install dependencies
+      # 3️⃣ Install dependencies
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn
 
-      #  Build project
+      # 4️⃣ Build project
       - name: Build project
         run: yarn run build
 
-      #  Deploy to server via SSH
-      - name: Deploy via SSH
+      # 5️⃣ Deploy via SSH
+      - name: SSH Deploy to Server
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -40,7 +38,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /var/www/SELE
+            cd /var/www/SELE/backend
             git pull origin main
             yarn install
             yarn run build
