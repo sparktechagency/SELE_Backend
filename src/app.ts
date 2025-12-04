@@ -1,11 +1,45 @@
 import cors from 'cors';
-import express, { Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
+import requestIp from 'request-ip';
+import express, { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './routes';
 import { Morgan } from './shared/morgen';
 import handleStripeWebhook from './app/stripe/handleStripeWebhook';
+import ApiError from './errors/ApiError';
 const app = express();
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request, res) => {
+    if (!req.clientIp) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        'Unable to determine client IP!'
+      );
+    }
+    return req.clientIp;
+  },
+  handler: (
+    _req: Request,
+    _res: Response,
+    _next: NextFunction,
+    options: any
+  ) => {
+    _res.status(options?.statusCode || 429).json({
+      success: false,
+      message: `Rate limit exceeded. Try again in ${
+        options.windowMs / 60000
+      } minutes.`,
+    });
+  },
+});
+app.use(requestIp.mw());
+app.use(limiter);
 
 //morgan
 app.use(Morgan.successHandler);
