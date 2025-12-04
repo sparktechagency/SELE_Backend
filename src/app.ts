@@ -4,12 +4,12 @@ import requestIp from 'request-ip';
 import express, { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
-import router from './routes';
 import { Morgan } from './shared/morgen';
 import handleStripeWebhook from './app/stripe/handleStripeWebhook';
 import ApiError from './errors/ApiError';
 import crypto from 'crypto';
 import config from './config';
+import router from './routes';
 const app = express();
 
 const limiter = rateLimit({
