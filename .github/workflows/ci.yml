@@ -33,10 +33,14 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
+          # host: ${{ secrets.SERVER_HOST }}
+          # username: ${{ secrets.SERVER_USERNAME }}
+          # key: ${{ secrets.SERVER_SSH_KEY }}
+          # port: ${{ secrets.SERVER_PORT }}
+          host: 69.62.67.125
+          username: root
+          key: ~/.ssh/id_rsa
+          port: 22
           script: |
             cd /var/www/SELE/backend
             git pull origin main
