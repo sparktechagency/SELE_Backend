@@ -8,6 +8,8 @@ import router from './routes';
 import { Morgan } from './shared/morgen';
 import handleStripeWebhook from './app/stripe/handleStripeWebhook';
 import ApiError from './errors/ApiError';
+import crypto from 'crypto';
+import config from './config';
 const app = express();
 
 const limiter = rateLimit({
@@ -49,6 +51,59 @@ app.post(
   '/api/stripe/webhook',
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
+);
+
+app.post(
+  '/github/webhook',
+  express.json({ type: 'application/json' }),
+  (req: Request, res: Response) => {
+    try {
+      const githubSecret = config.github.GITHUB_WEBHOOK_SECRET;
+
+      //  Verify GitHub Signature (Optional but recommended)
+      if (githubSecret) {
+        const signature = req.headers['x-hub-signature-256'] as string;
+
+        const body = JSON.stringify(req.body);
+        const expectedSignature =
+          'sha256=' +
+          crypto.createHmac('sha256', githubSecret).update(body).digest('hex');
+
+        if (signature !== expectedSignature) {
+          return res.status(401).send('Invalid GitHub signature!');
+        }
+      }
+
+      const event = req.headers['x-github-event'];
+      const branch = req.body?.ref;
+
+      console.log('🔔 GitHub Webhook Triggered!');
+      console.log('Event:', event);
+
+      // Deploy only on main branch push
+      if (branch === 'refs/heads/main') {
+        console.log('🚀 Deploying new update...');
+
+        const { exec } = require('child_process');
+        exec('sh /var/www/deploy.sh', (err: any, stdout: any, stderr: any) => {
+          if (err) {
+            console.error('Deploy error:', err);
+            return;
+          }
+          console.log('Deploy Output:', stdout);
+          if (stderr) console.error('Deploy Stderr:', stderr);
+        });
+      }
+
+      return res.status(200).send('Webhook received!');
+    } catch (error) {
+      console.error('GitHub Webhook Error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'GitHub webhook error',
+      });
+    }
+  }
 );
 
 //body parser

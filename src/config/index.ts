@@ -43,4 +43,7 @@ export default {
     bonzahUserName: process.env.BONZAH_USERNAME,
     bonzahPassword: process.env.BONZAH_PASSWORD,
   },
+  github: {
+    GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+  },
 };
