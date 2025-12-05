@@ -11,25 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 3️⃣ Install dependencies
+      # Install dependencies
       - name: Install dependencies
         run: yarn
 
-      # 4️⃣ Build project
+      # Build project
       - name: Build project
         run: yarn run build
 
-      # 5️⃣ Deploy via SSH
+      # Deploy via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.8
         with:
@@ -39,7 +39,7 @@ jobs:
           # port: ${{ secrets.SERVER_PORT }}
           host: 69.62.67.125
           username: root
-          key: ~/.ssh/id_rsa
+          key: ${{ secrets.TT }}
           port: 22
           script: |
             cd /var/www/SELE/backend
